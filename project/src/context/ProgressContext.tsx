@@ -3,8 +3,10 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { calculateUserProgress, type UserProgress as CalculatedProgress } from "@/lib/utils/progress"
+import type { ExerciseProgress } from "@/lib/types/database"
 
 interface ProgressContextValue {
+  completedExercises: ExerciseProgress[]
   completedDays: number[]
   progress: CalculatedProgress | null
   refresh: () => Promise<void>
@@ -20,11 +22,19 @@ export function useProgress() {
 
 export function ProgressProvider({ children }: { children: ReactNode }) {
   const supabase = useMemo(() => createClient(), [])
+  const [completedExercises, setCompletedExercises] = useState<ExerciseProgress[]>([])
   const [completedDays, setCompletedDays] = useState<number[]>([])
   const [progress, setProgress] = useState<CalculatedProgress | null>(null)
 
-  const compute = useCallback((days: number[]) => {
-    setProgress(calculateUserProgress(days))
+  const compute = useCallback((exercises: ExerciseProgress[]) => {
+    const calculated = calculateUserProgress(exercises)
+    setProgress(calculated)
+    
+    // Extrair dias únicos completos para compatibilidade com código existente
+    const uniqueDays = Array.from(
+      new Set(exercises.map((ex) => ex.day_number))
+    ).sort((a, b) => a - b)
+    setCompletedDays(uniqueDays)
   }, [])
 
   const refresh = useCallback(async () => {
@@ -33,16 +43,16 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     } = await supabase.auth.getUser()
     if (!user) return
 
+    // Buscar da tabela exercise_progress em vez de user_progress
     const { data, error } = await supabase
-      .from("user_progress")
-      .select("day_number")
+      .from("exercise_progress")
+      .select("*")
       .eq("user_id", user.id)
-      .order("day_number", { ascending: true })
+      .order("completed_at", { ascending: true })
 
     if (!error && data) {
-      const days = data.map((d) => d.day_number)
-      setCompletedDays(days)
-      compute(days)
+      setCompletedExercises(data)
+      compute(data)
     }
   }, [compute, supabase])
 
@@ -63,19 +73,26 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   }, []) // Empty deps - only run on mount
 
   useEffect(() => {
-    // realtime subscription
+    // realtime subscription para exercise_progress
     const channel = supabase
-      .channel("user_progress_changes")
+      .channel("exercise_progress_changes")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "user_progress" },
+        { event: "INSERT", schema: "public", table: "exercise_progress" },
         () => {
           refresh()
         },
       )
       .on(
         "postgres_changes",
-        { event: "DELETE", schema: "public", table: "user_progress" },
+        { event: "DELETE", schema: "public", table: "exercise_progress" },
+        () => {
+          refresh()
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "exercise_progress" },
         () => {
           refresh()
         },
@@ -88,6 +105,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   }, [supabase, refresh])
 
   const value: ProgressContextValue = {
+    completedExercises,
     completedDays,
     progress,
     refresh,
