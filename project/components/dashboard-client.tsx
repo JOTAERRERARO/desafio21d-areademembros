@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import { Header } from "@/components/header"
 import { Sidebar } from "@/components/sidebar"
 import { Dashboard } from "@/components/dashboard"
@@ -36,9 +36,7 @@ export function DashboardClient({ user, completedDays }: DashboardClientProps) {
   const supabase = createClient()
 
   // Onboarding modal state - derive from user prop instead of useEffect
-  const showOnboardingModal = useMemo(() => {
-    return !user?.name || user.name.trim().length === 0
-  }, [user?.name])
+  const showOnboardingModal = !user?.name || user.name.trim().length === 0
   
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
