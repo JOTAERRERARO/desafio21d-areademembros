@@ -1,17 +1,36 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server"
+import { createAdminSupabaseClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
+  console.log("[WEBHOOK] Received webhook request")
+
   try {
-    const body = await request.json()
+    // Parse request body
+    let body
+    try {
+      body = await request.json()
+    } catch (parseError) {
+      console.error("[WEBHOOK] Failed to parse request body:", parseError)
+      return NextResponse.json(
+        { error: "Invalid JSON in request body" }, 
+        { status: 400 }
+      )
+    }
+
     const { email, nome } = body
 
     if (!email || !nome) {
-      return NextResponse.json({ error: "Email e nome são obrigatórios" }, { status: 400 })
+      console.error("[WEBHOOK] Missing required fields:", { email: !!email, nome: !!nome })
+      return NextResponse.json(
+        { error: "Email e nome são obrigatórios" }, 
+        { status: 400 }
+      )
     }
 
-    const supabase = await createServerSupabaseClient()
+    console.log("[WEBHOOK] Creating admin Supabase client")
+    const supabase = await createAdminSupabaseClient()
 
+    console.log("[WEBHOOK] Creating user:", email)
     // Create user in Supabase Auth with default password
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email,
@@ -23,9 +42,22 @@ export async function POST(request: Request) {
     })
 
     if (authError) {
-      console.error("[v0] Error creating user:", authError)
-      return NextResponse.json({ error: authError.message }, { status: 500 })
+      console.error("[WEBHOOK] Error creating user:", authError)
+      return NextResponse.json(
+        { error: authError.message }, 
+        { status: 500 }
+      )
     }
+
+    if (!authData || !authData.user) {
+      console.error("[WEBHOOK] User creation returned no data")
+      return NextResponse.json(
+        { error: "Failed to create user - no data returned" }, 
+        { status: 500 }
+      )
+    }
+
+    console.log("[WEBHOOK] User created successfully, ID:", authData.user.id)
 
     // Log payment in payments table
     const { error: paymentError } = await supabase.from("payments").insert({
@@ -37,10 +69,11 @@ export async function POST(request: Request) {
     })
 
     if (paymentError) {
-      console.error("[v0] Error logging payment:", paymentError)
+      console.error("[WEBHOOK] Error logging payment:", paymentError)
+      // Don't fail the webhook if payment logging fails
     }
 
-    console.log("[v0] User created successfully:", email)
+    console.log("[WEBHOOK] Webhook completed successfully for:", email)
 
     return NextResponse.json(
       {
@@ -51,7 +84,11 @@ export async function POST(request: Request) {
       { status: 200 },
     )
   } catch (error) {
-    console.error("[v0] Webhook error:", error)
-    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
+    console.error("[WEBHOOK] Unexpected error:", error)
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    return NextResponse.json(
+      { error: "Erro interno do servidor", details: errorMessage }, 
+      { status: 500 }
+    )
   }
 }

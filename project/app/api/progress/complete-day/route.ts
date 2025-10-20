@@ -2,24 +2,54 @@ import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
+  console.log("[COMPLETE_DAY] Received request")
+
   try {
-    const supabase = await createServerSupabaseClient()
+    // Create Supabase client
+    let supabase
+    try {
+      supabase = await createServerSupabaseClient()
+    } catch (clientError) {
+      console.error("[COMPLETE_DAY] Failed to create Supabase client:", clientError)
+      return NextResponse.json(
+        { error: "Database connection failed", details: clientError instanceof Error ? clientError.message : "Unknown error" },
+        { status: 503 }
+      )
+    }
 
     // Check if user is authenticated
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser()
 
+    if (authError) {
+      console.error("[COMPLETE_DAY] Auth error:", authError)
+      return NextResponse.json({ error: "Authentication failed" }, { status: 401 })
+    }
+
     if (!user) {
+      console.error("[COMPLETE_DAY] No user found")
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 })
     }
 
-    const body = await request.json()
+    // Parse request body
+    let body
+    try {
+      body = await request.json()
+    } catch (parseError) {
+      console.error("[COMPLETE_DAY] Failed to parse request body:", parseError)
+      return NextResponse.json({ error: "Invalid JSON in request body" }, { status: 400 })
+    }
+
     const { day_number } = body
 
     if (!day_number || day_number < 1 || day_number > 21) {
+      console.error("[COMPLETE_DAY] Invalid day number:", day_number)
       return NextResponse.json({ error: "Número do dia inválido" }, { status: 400 })
     }
+
+    console.log("[COMPLETE_DAY] Updating progress for user:", user.id, "day:", day_number)
 
     // Insert or update progress
     const { error: progressError } = await supabase.from("user_progress").upsert(
@@ -33,7 +63,7 @@ export async function POST(request: Request) {
     )
 
     if (progressError) {
-      console.error("[v0] Error updating progress:", progressError)
+      console.error("[COMPLETE_DAY] Error updating progress:", progressError)
       return NextResponse.json({ error: progressError.message }, { status: 500 })
     }
 
@@ -44,7 +74,7 @@ export async function POST(request: Request) {
       .eq("user_id", user.id)
 
     if (countError) {
-      console.error("[v0] Error counting progress:", countError)
+      console.error("[COMPLETE_DAY] Error counting progress:", countError)
     }
 
     const completedDays = allProgress?.length || 0
@@ -61,8 +91,10 @@ export async function POST(request: Request) {
       .eq("id", user.id)
 
     if (updateError) {
-      console.error("[v0] Error updating user stats:", updateError)
+      console.error("[COMPLETE_DAY] Error updating user stats:", updateError)
     }
+
+    console.log("[COMPLETE_DAY] Progress updated successfully")
 
     return NextResponse.json(
       {
@@ -73,7 +105,11 @@ export async function POST(request: Request) {
       { status: 200 },
     )
   } catch (error) {
-    console.error("[v0] Progress tracking error:", error)
-    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
+    console.error("[COMPLETE_DAY] Unexpected error:", error)
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    return NextResponse.json(
+      { error: "Erro interno do servidor", details: errorMessage },
+      { status: 500 }
+    )
   }
 }
