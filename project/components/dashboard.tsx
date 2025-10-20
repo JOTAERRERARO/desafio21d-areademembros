@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import type { User } from "@/lib/types/database"
 import { useProgress } from "@/src/context/ProgressContext"
-import { findNextUncompletedWorkout } from "@/lib/utils/progress"
 import { LoadingSkeleton } from "@/components/ui/loading-spinner"
 
 interface DashboardProps {
