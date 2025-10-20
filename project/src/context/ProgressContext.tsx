@@ -8,7 +8,8 @@ import type { ExerciseProgress } from "@/lib/types/database"
 interface ProgressContextValue {
   completedExercises: ExerciseProgress[]
   completedDays: number[]
-  progress: CalculatedProgress | null
+  progress: CalculatedProgress
+  loading: boolean
   refresh: () => Promise<void>
 }
 
@@ -24,7 +25,21 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const supabase = useMemo(() => createClient(), [])
   const [completedExercises, setCompletedExercises] = useState<ExerciseProgress[]>([])
   const [completedDays, setCompletedDays] = useState<number[]>([])
-  const [progress, setProgress] = useState<CalculatedProgress | null>(null)
+  const [loading, setLoading] = useState(true)
+  
+  // Estado inicial SEGURO - sempre com valores definidos
+  const [progress, setProgress] = useState<CalculatedProgress>({
+    currentDay: 1,
+    activeWeek: 1,
+    nextUncompletedDay: 1,
+    weeks: [
+      { weekNumber: 1, isLocked: false, isActive: true, isCompleted: false, completedDays: 0, totalDays: 7, progress: 0 },
+      { weekNumber: 2, isLocked: true, isActive: false, isCompleted: false, completedDays: 0, totalDays: 7, progress: 0 },
+      { weekNumber: 3, isLocked: true, isActive: false, isCompleted: false, completedDays: 0, totalDays: 7, progress: 0 },
+    ],
+    totalProgress: 0,
+    streak: 0,
+  })
 
   const compute = useCallback((exercises: ExerciseProgress[]) => {
     const calculated = calculateUserProgress(exercises)
@@ -38,21 +53,41 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const refresh = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      setLoading(true)
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      
+      if (!user) {
+        setLoading(false)
+        return
+      }
 
-    // Buscar da tabela exercise_progress em vez de user_progress
-    const { data, error } = await supabase
-      .from("exercise_progress")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("completed_at", { ascending: true })
+      // Buscar da tabela exercise_progress em vez de user_progress
+      const { data, error } = await supabase
+        .from("exercise_progress")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("completed_at", { ascending: true })
 
-    if (!error && data) {
-      setCompletedExercises(data)
-      compute(data)
+      if (error) {
+        console.error("Erro ao buscar progresso:", error)
+        // Manter estado inicial seguro mesmo em caso de erro
+        setCompletedExercises([])
+        compute([])
+      } else {
+        // Garantir que data seja um array, mesmo que seja null
+        const exercises = data || []
+        setCompletedExercises(exercises)
+        compute(exercises)
+      }
+    } catch (error) {
+      console.error("Erro inesperado ao buscar progresso:", error)
+      setCompletedExercises([])
+      compute([])
+    } finally {
+      setLoading(false)
     }
   }, [compute, supabase])
 
@@ -108,6 +143,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     completedExercises,
     completedDays,
     progress,
+    loading,
     refresh,
   }
 
