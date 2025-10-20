@@ -106,7 +106,7 @@ export const week1Days: WorkoutDay[] = [
         title: "Push Workout - Chest & Triceps",
         type: "video",
         duration: "25 min",
-        url: "https://www.youtube.com/embed/CdUVpTqlEBw",
+        url: "https://www.youtube.com/embed/CKXUCydj9o0",
         completed: false,
       },
     ],

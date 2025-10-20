@@ -4,7 +4,8 @@ import { Calendar, Flame, Play, Target } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import type { User } from "@/lib/types/database"
-import { calculateUserProgress, findNextUncompletedWorkout } from "@/lib/utils/progress"
+import { useProgress } from "@/src/context/ProgressContext"
+import { findNextUncompletedWorkout } from "@/lib/utils/progress"
 
 interface DashboardProps {
   user: User | null
@@ -14,11 +15,14 @@ interface DashboardProps {
 export function Dashboard({ user, completedDays }: DashboardProps) {
   const router = useRouter()
   const [showToast, setShowToast] = useState(false)
+  const { progress, completedExercises } = useProgress()
 
-  const userProgress = calculateUserProgress(completedDays)
+  // Usar progresso do context, ou fallback para cálculo local
+  const userProgress = progress || { currentDay: 1, totalProgress: 0, streak: 0 }
+  const streak = userProgress.streak || 0
 
   const handleTodayWorkout = () => {
-    const nextWorkoutUrl = findNextUncompletedWorkout(completedDays)
+    const nextWorkoutUrl = findNextUncompletedWorkout(completedExercises)
 
     if (nextWorkoutUrl === "/dashboard") {
       // All workouts completed
@@ -30,6 +34,9 @@ export function Dashboard({ user, completedDays }: DashboardProps) {
     router.push(nextWorkoutUrl)
   }
 
+  // Extrair primeiro nome do usuário para saudação personalizada
+  const firstName = user?.name?.split(' ')[0]?.toUpperCase() || "GUERREIRO(A)"
+
   const stats = [
     {
       icon: Calendar,
@@ -40,21 +47,21 @@ export function Dashboard({ user, completedDays }: DashboardProps) {
     },
     {
       icon: Flame,
-      value: user?.streak || 0,
+      value: streak,
       label: "Dias Seguidos",
       color: "text-accent-yellow",
       bgGradient: "from-accent-yellow/20 to-accent-yellow/5",
     },
     {
       icon: Play,
-      value: user?.videos_watched || 0,
+      value: user?.videos_watched || completedDays.length,
       label: "Vídeos",
       color: "text-secondary",
       bgGradient: "from-secondary/20 to-secondary/5",
     },
     {
       icon: Target,
-      value: `${Math.round((completedDays.length / 21) * 100)}%`,
+      value: `${userProgress.totalProgress}%`,
       label: "Progresso Total",
       color: "text-accent-green",
       bgGradient: "from-accent-green/20 to-accent-green/5",
@@ -74,13 +81,19 @@ export function Dashboard({ user, completedDays }: DashboardProps) {
         <div className="relative z-10">
           <h1 className="text-2xl md:text-3xl font-black mb-2 flex items-center gap-2 text-white">
             <Flame size={32} className="animate-pulse" />
-            BEM-VINDO DE VOLTA, {user?.name.toUpperCase() || "MEMBRO"}!
+            BEM-VINDO DE VOLTA, {firstName}!
           </h1>
           <p className="text-base md:text-lg text-white/90 mb-1">
             Você está no <span className="font-bold">DIA {userProgress.currentDay}</span> de 21
           </p>
+          {streak > 0 && (
+            <p className="text-sm md:text-base text-white/90 mb-2 flex items-center gap-2">
+              <Flame size={18} className="text-accent-yellow animate-pulse" />
+              <span className="font-bold">{streak} {streak === 1 ? 'dia seguido' : 'dias seguidos'}!</span>
+            </p>
+          )}
           <p className="text-sm md:text-base text-white/80 mb-6">
-            Continue assim! A transformação acontece um treino de cada vez.
+            {streak > 0 ? 'Você está em chamas! 🔥 Continue assim!' : 'Continue assim! A transformação acontece um treino de cada vez.'}
           </p>
           <button
             onClick={handleTodayWorkout}
