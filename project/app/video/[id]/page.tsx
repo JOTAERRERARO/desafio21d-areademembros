@@ -2,6 +2,8 @@ import { redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { VideoPlayer } from "@/components/video-player"
 import { week1Days, week2Days, week3Days } from "@/lib/data/workout-data"
+import { calculateUserProgress } from "@/lib/utils/progress"
+import type { ExerciseProgress } from "@/lib/types/database"
 
 export default async function VideoPage({ params }: { params: Promise<{ id: string }> }) {
   try {
@@ -23,18 +25,22 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
       redirect("/dashboard")
     }
 
-    // Get user progress
-    const { data: progressData, error: progressError } = await supabase
-      .from("user_progress")
-      .select("day_number")
+    // Buscar progresso de EXERCÍCIOS (nova lógica)
+    const { data: exerciseProgressData, error: progressError } = await supabase
+      .from("exercise_progress")
+      .select("*")
       .eq("user_id", user.id)
-      .order("day_number", { ascending: true })
+      .order("completed_at", { ascending: true })
 
     if (progressError) {
-      console.error("[v0] Error fetching progress:", progressError)
+      console.error("[v0] Error fetching exercise progress:", progressError)
     }
 
-    const completedDays = progressData?.map((p) => p.day_number) || []
+    const completedExercises: ExerciseProgress[] = exerciseProgressData || []
+    
+    // Calcular progresso usando a nova lógica
+    const userProgress = calculateUserProgress(completedExercises)
+    const completedDays = Array.from(new Set(completedExercises.map((ex) => ex.day_number)))
 
     // Find the workout day
     const allDays = [...week1Days, ...week2Days, ...week3Days]
@@ -44,14 +50,18 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
       redirect("/dashboard")
     }
 
-    // Check if day is locked
-    const isLocked = dayNumber > 1 && !completedDays.includes(dayNumber - 1)
+    // Verificar se o dia está bloqueado baseado na lógica de semanas
+    const weekIndex = dayNumber <= 7 ? 0 : dayNumber <= 14 ? 1 : 2
+    const isLocked = userProgress.weeks[weekIndex]?.isLocked || false
 
     if (isLocked) {
+      console.log(`[v0] Dia ${dayNumber} está bloqueado. Redirecionando...`)
       redirect("/dashboard")
     }
 
-    const isCompleted = completedDays.includes(dayNumber)
+    // Verificar se o dia está completo (TODOS os exercícios)
+    const completedExerciseIds = new Set(completedExercises.map((ex) => ex.exercise_id))
+    const isCompleted = workoutDay.exercises.every((ex) => completedExerciseIds.has(ex.id))
 
     // Find next day
     const nextDay = allDays.find((d) => d.day === dayNumber + 1)
@@ -59,7 +69,6 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
     return (
       <VideoPlayer
         workoutDay={workoutDay}
-        userId={user.id}
         isCompleted={isCompleted}
         nextDay={nextDay}
         completedDays={completedDays}

@@ -23,16 +23,24 @@ export function Dashboard({ user, completedDays }: DashboardProps) {
   const streak = progress?.streak || 0
 
   const handleTodayWorkout = () => {
-    const nextWorkoutUrl = findNextUncompletedWorkout(completedExercises)
+    console.log("🔍 DEBUG - Treino do Dia:", {
+      completedExercises: completedExercises.length,
+      progress: userProgress,
+      nextDay: userProgress.nextUncompletedDay,
+    })
 
-    if (nextWorkoutUrl === "/dashboard") {
-      // All workouts completed
+    // Usar nextUncompletedDay do progresso calculado
+    const nextDay = userProgress.nextUncompletedDay
+
+    if (!nextDay || nextDay > 21) {
+      // Todos os treinos completos
       setShowToast(true)
       setTimeout(() => setShowToast(false), 3000)
       return
     }
 
-    router.push(nextWorkoutUrl)
+    console.log(`🚀 Redirecionando para: /video/${nextDay}`)
+    router.push(`/video/${nextDay}`)
   }
 
   // Extrair primeiro nome do usuário para saudação personalizada
