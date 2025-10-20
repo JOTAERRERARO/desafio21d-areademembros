@@ -22,6 +22,12 @@ interface SidebarProps {
   onPageChange: (page: string) => void
 }
 
+interface DerivedState {
+  locked?: boolean
+  current?: boolean
+  completed?: boolean
+}
+
 const menuItems = [
   { id: "dashboard", label: "PAINEL GERAL", icon: LayoutDashboard, section: "main" },
   { id: "week1", label: "Semana 1: Base", icon: Flame, section: "modules", completed: true, badge: "1" },
@@ -61,7 +67,7 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarP
           {menuItems.map((item, index) => {
             // derive locked/current/completed from progress when applicable
             const weekIdx = item.id === "week1" ? 0 : item.id === "week2" ? 1 : item.id === "week3" ? 2 : null
-            const derived =
+            const derived: DerivedState =
               weekIdx !== null && progress
                 ? {
                     locked: progress.weeks[weekIdx].isLocked,
@@ -83,12 +89,12 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarP
                 )}
 
                 <button
-                  onClick={() => !(derived as any).locked && !item.locked && onPageChange(item.id)}
-                  disabled={(derived as any).locked || item.locked}
+                  onClick={() => !derived.locked && !item.locked && onPageChange(item.id)}
+                  disabled={derived.locked || item.locked}
                   className={`w-full px-4 py-3 flex items-center gap-3 transition-all duration-200 ${
                     currentPage === item.id
                       ? "bg-primary/20 border-l-4 border-primary text-primary"
-                      : (derived as any).locked || item.locked
+                      : derived.locked || item.locked
                         ? "opacity-50 cursor-not-allowed"
                         : "hover:bg-white/5 hover:translate-x-1 border-l-4 border-transparent"
                   }`}
@@ -99,16 +105,16 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarP
                   {item.badge && (
                     <span
                       className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                        (derived as any).current || item.current ? "bg-primary text-white" : "bg-dark-bg"
+                        derived.current || item.current ? "bg-primary text-white" : "bg-dark-bg"
                       }`}
                     >
                       {item.badge}
                     </span>
                   )}
 
-                  {(derived as any).completed || item.completed ? <CheckCircle2 size={18} className="text-accent-green" /> : null}
-                  {(derived as any).current || item.current ? <Flame size={18} className="text-primary animate-pulse" /> : null}
-                  {(derived as any).locked || item.locked ? <Lock size={18} /> : null}
+                  {(derived.completed || item.completed) && <CheckCircle2 size={18} className="text-accent-green" />}
+                  {(derived.current || item.current) && <Flame size={18} className="text-primary animate-pulse" />}
+                  {(derived.locked || item.locked) && <Lock size={18} />}
                 </button>
               </div>
             )

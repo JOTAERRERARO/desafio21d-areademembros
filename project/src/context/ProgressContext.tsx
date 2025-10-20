@@ -47,9 +47,20 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   }, [compute, supabase])
 
   useEffect(() => {
-    // initial load
-    refresh()
-  }, [refresh])
+    // initial load - call refresh once on mount
+    let mounted = true
+    const loadInitialData = async () => {
+      if (mounted) {
+        await refresh()
+      }
+    }
+    loadInitialData()
+    
+    return () => {
+      mounted = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Empty deps - only run on mount
 
   useEffect(() => {
     // realtime subscription
@@ -84,3 +95,4 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
   return <ProgressContext.Provider value={value}>{children}</ProgressContext.Provider>
 }
+

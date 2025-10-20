@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState, useMemo } from "react"
 import { Header } from "@/components/header"
 import { Sidebar } from "@/components/sidebar"
 import { Dashboard } from "@/components/dashboard"
@@ -35,18 +35,15 @@ export function DashboardClient({ user, completedDays }: DashboardClientProps) {
   const router = useRouter()
   const supabase = createClient()
 
-  // Onboarding modal state
-  const [showOnboardingModal, setShowOnboardingModal] = useState(false)
+  // Onboarding modal state - derive from user prop instead of useEffect
+  const showOnboardingModal = useMemo(() => {
+    return !user?.name || user.name.trim().length === 0
+  }, [user?.name])
+  
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [savingProfile, setSavingProfile] = useState(false)
-
-  useEffect(() => {
-    const needsOnboarding = !user?.name || user.name.trim().length === 0
-    if (needsOnboarding) {
-      setShowOnboardingModal(true)
-    }
-  }, [user])
+  const [modalClosed, setModalClosed] = useState(false)
 
   const handleSaveProfile = async () => {
     if (!firstName.trim() || !lastName.trim()) return
@@ -67,7 +64,7 @@ export function DashboardClient({ user, completedDays }: DashboardClientProps) {
     const { error: userUpdateError } = await supabase.from("users").update({ name: fullName }).eq("id", authUser.id)
 
     if (!authError && !userUpdateError) {
-      setShowOnboardingModal(false)
+      setModalClosed(true)
       setSavingProfile(false)
       router.refresh()
       return
@@ -137,7 +134,7 @@ export function DashboardClient({ user, completedDays }: DashboardClientProps) {
       case "support":
         return <SupportPage />
       default:
-        return <Dashboard user={user} completedDays={completedDays} />
+        return <Dashboard user={user} completedDays={completed} />
     }
   }
 
@@ -161,7 +158,7 @@ export function DashboardClient({ user, completedDays }: DashboardClientProps) {
         </main>
       </div>
 
-      <Dialog open={showOnboardingModal}>
+      <Dialog open={showOnboardingModal && !modalClosed}>
         <DialogContent
           showCloseButton={false}
           onInteractOutside={(e) => e.preventDefault()}
