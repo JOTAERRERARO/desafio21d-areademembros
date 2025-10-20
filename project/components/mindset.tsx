@@ -36,7 +36,7 @@ export function Mindset() {
       }
     }
     fetchAudios()
-  }, [])
+  }, [supabase])
 
   const displayedAudios = showAllAudios ? audios : audios.slice(0, 3)
 
