@@ -32,20 +32,22 @@ export default async function DashboardPage() {
       console.error("[v0] Error fetching user data:", userError.message)
     }
 
-    // Fetch user progress
-    const { data: progressData, error: progressError } = await supabase
-      .from("user_progress")
-      .select("day_number")
+    // Fetch exercise progress (nova lógica)
+    const { data: exerciseProgressData, error: progressError } = await supabase
+      .from("exercise_progress")
+      .select("*")
       .eq("user_id", user.id)
-      .order("day_number", { ascending: true })
+      .order("completed_at", { ascending: true })
 
     if (progressError) {
-      console.error("[v0] Error fetching progress data:", progressError.message)
+      console.error("[v0] Error fetching exercise progress data:", progressError.message)
     }
 
-    const completedDays = progressData?.map((p) => p.day_number) || []
+    // Extrair dias únicos completos para compatibilidade
+    const completedExercises = exerciseProgressData || []
+    const completedDays = Array.from(new Set(completedExercises.map((ex) => ex.day_number)))
 
-    console.log("[v0] Dashboard: Rendering with", completedDays.length, "completed days")
+    console.log("[v0] Dashboard: Rendering with", completedDays.length, "completed days and", completedExercises.length, "completed exercises")
 
     return <DashboardClient user={userData} completedDays={completedDays} />
   } catch (error) {
