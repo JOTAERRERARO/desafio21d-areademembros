@@ -67,8 +67,10 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarP
           {menuItems.map((item, index) => {
             // derive locked/current/completed from progress when applicable
             const weekIdx = item.id === "week1" ? 0 : item.id === "week2" ? 1 : item.id === "week3" ? 2 : null
+            
+            // VERIFICAÇÃO DEFENSIVA: Garantir que progress.weeks existe e tem o índice
             const derived: DerivedState =
-              weekIdx !== null && progress
+              weekIdx !== null && progress?.weeks && progress.weeks[weekIdx]
                 ? {
                     locked: progress.weeks[weekIdx].isLocked,
                     current: progress.weeks[weekIdx].isActive,

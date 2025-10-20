@@ -6,6 +6,7 @@ import { useState } from "react"
 import type { User } from "@/lib/types/database"
 import { useProgress } from "@/src/context/ProgressContext"
 import { findNextUncompletedWorkout } from "@/lib/utils/progress"
+import { LoadingSkeleton } from "@/components/ui/loading-spinner"
 
 interface DashboardProps {
   user: User | null
@@ -15,11 +16,11 @@ interface DashboardProps {
 export function Dashboard({ user, completedDays }: DashboardProps) {
   const router = useRouter()
   const [showToast, setShowToast] = useState(false)
-  const { progress, completedExercises } = useProgress()
+  const { progress, completedExercises, loading } = useProgress()
 
-  // Usar progresso do context, ou fallback para cálculo local
-  const userProgress = progress || { currentDay: 1, totalProgress: 0, streak: 0 }
-  const streak = userProgress.streak || 0
+  // PROGRAMAÇÃO DEFENSIVA: Garantir que progress sempre tem valores válidos
+  const userProgress = progress
+  const streak = progress?.streak || 0
 
   const handleTodayWorkout = () => {
     const nextWorkoutUrl = findNextUncompletedWorkout(completedExercises)
@@ -67,6 +68,11 @@ export function Dashboard({ user, completedDays }: DashboardProps) {
       bgGradient: "from-accent-green/20 to-accent-green/5",
     },
   ]
+
+  // Mostrar loading enquanto carrega os dados
+  if (loading) {
+    return <LoadingSkeleton />
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">

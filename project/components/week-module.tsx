@@ -123,7 +123,8 @@ export function WeekModule({
       </div>
 
       <div className="space-y-4">
-        {days.map((day) => {
+        {/* VERIFICAÇÃO DEFENSIVA: Garantir que days é um array */}
+        {Array.isArray(days) && days.map((day) => {
           const isExpanded = expandedDay === day.day
           const isCompleted = completedDays.includes(day.day)
           const isLocked = day.day > 1 && !completedDays.includes(day.day - 1)
