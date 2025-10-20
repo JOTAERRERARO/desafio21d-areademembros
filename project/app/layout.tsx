@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter, Montserrat } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
+import { ProgressProvider } from "@/src/context/ProgressContext"
 import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
@@ -21,7 +22,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="pt-BR">
       <body className={`${inter.variable} ${montserrat.variable} font-sans antialiased`}>
-        {children}
+        <ProgressProvider>
+          {children}
+        </ProgressProvider>
         <Analytics />
       </body>
     </html>

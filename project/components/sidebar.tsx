@@ -13,6 +13,7 @@ import {
   Lock,
   CheckCircle2,
 } from "lucide-react"
+import { useProgress } from "@/src/context/ProgressContext"
 
 interface SidebarProps {
   isOpen: boolean
@@ -36,6 +37,7 @@ const menuItems = [
 ]
 
 export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarProps) {
+  const { progress } = useProgress()
   const sectionTitles = {
     main: "",
     modules: "MÓDULOS DO DESAFIO",
@@ -57,6 +59,16 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarP
 
         <nav className="py-6">
           {menuItems.map((item, index) => {
+            // derive locked/current/completed from progress when applicable
+            const weekIdx = item.id === "week1" ? 0 : item.id === "week2" ? 1 : item.id === "week3" ? 2 : null
+            const derived =
+              weekIdx !== null && progress
+                ? {
+                    locked: progress.weeks[weekIdx].isLocked,
+                    current: progress.weeks[weekIdx].isActive,
+                    completed: progress.weeks[weekIdx].isCompleted,
+                  }
+                : {}
             const showSectionTitle = index === 0 || menuItems[index - 1].section !== item.section
 
             return (
@@ -71,12 +83,12 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarP
                 )}
 
                 <button
-                  onClick={() => !item.locked && onPageChange(item.id)}
-                  disabled={item.locked}
+                  onClick={() => !(derived as any).locked && !item.locked && onPageChange(item.id)}
+                  disabled={(derived as any).locked || item.locked}
                   className={`w-full px-4 py-3 flex items-center gap-3 transition-all duration-200 ${
                     currentPage === item.id
                       ? "bg-primary/20 border-l-4 border-primary text-primary"
-                      : item.locked
+                      : (derived as any).locked || item.locked
                         ? "opacity-50 cursor-not-allowed"
                         : "hover:bg-white/5 hover:translate-x-1 border-l-4 border-transparent"
                   }`}
@@ -87,16 +99,16 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarP
                   {item.badge && (
                     <span
                       className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                        item.current ? "bg-primary text-white" : "bg-dark-bg"
+                        (derived as any).current || item.current ? "bg-primary text-white" : "bg-dark-bg"
                       }`}
                     >
                       {item.badge}
                     </span>
                   )}
 
-                  {item.completed && <CheckCircle2 size={18} className="text-accent-green" />}
-                  {item.current && <Flame size={18} className="text-primary animate-pulse" />}
-                  {item.locked && <Lock size={18} />}
+                  {(derived as any).completed || item.completed ? <CheckCircle2 size={18} className="text-accent-green" /> : null}
+                  {(derived as any).current || item.current ? <Flame size={18} className="text-primary animate-pulse" /> : null}
+                  {(derived as any).locked || item.locked ? <Lock size={18} /> : null}
                 </button>
               </div>
             )
