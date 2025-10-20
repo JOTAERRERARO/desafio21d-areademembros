@@ -2,6 +2,9 @@ import { redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { DashboardClient } from "@/components/dashboard-client"
 
+// Force dynamic rendering to avoid static generation issues with cookies()
+export const dynamic = "force-dynamic"
+
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()
 

@@ -5,6 +5,9 @@ import { week1Days, week2Days, week3Days } from "@/lib/data/workout-data"
 import { calculateUserProgress } from "@/lib/utils/progress"
 import type { ExerciseProgress } from "@/lib/types/database"
 
+// Force dynamic rendering to avoid static generation issues with cookies()
+export const dynamic = "force-dynamic"
+
 export default async function VideoPage({ params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params

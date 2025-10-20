@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 
+// Force dynamic rendering to avoid static generation issues with cookies()
+export const dynamic = "force-dynamic"
+
 export default async function Home() {
   try {
     const supabase = await createServerSupabaseClient()
