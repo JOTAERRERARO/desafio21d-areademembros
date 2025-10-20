@@ -8,7 +8,7 @@ import { completeDayAction } from "@/lib/actions/progress"
 import type { WorkoutDay } from "@/lib/types/database"
 import { Button } from "@/components/ui/button"
 
-const ReactPlayer = dynamic(() => import("react-player/youtube"), {
+const ReactPlayer = dynamic(() => import("react-player"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center bg-black">
