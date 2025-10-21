@@ -24,8 +24,6 @@ export interface UserProgress {
  * This is the single source of truth for all progress-related logic
  */
 export function calculateUserProgress(completedDays: number[]): UserProgress {
-  const allDays = [...week1Days, ...week2Days, ...week3Days]
-
   // Calculate progress for each week
   const weeks: WeekProgress[] = [
     {
