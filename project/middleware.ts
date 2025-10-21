@@ -1,6 +1,6 @@
-import { NextResponse, type NextRequest } from "next/server"
+import { NextResponse } from "next/server"
 
-export async function middleware(request: NextRequest) {
+export async function middleware() {
   // Let the request through - auth checks are handled at the page level
   // This avoids Edge runtime compatibility issues with Supabase
   return NextResponse.next()
