@@ -54,7 +54,7 @@ export function JournalPage() {
       }
     }
     fetchEntries()
-  }, [])
+  }, [supabase])
 
   const handleSave = async () => {
     setSaving(true)
