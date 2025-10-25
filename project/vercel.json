@@ -1,14 +1,8 @@
 {
   "buildCommand": "pnpm build",
   "installCommand": "pnpm install --no-frozen-lockfile",
-  "outputDirectory": ".next",
   "framework": "nextjs",
-  "cleanUrls": true,
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/"
-    }
-  ]
+  "outputDirectory": ".next",
+  "cleanUrls": true
 }
 
