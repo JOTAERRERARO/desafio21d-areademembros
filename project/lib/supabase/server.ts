@@ -1,3 +1,5 @@
+"use server"
+
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
@@ -28,4 +30,34 @@ export async function createServerSupabaseClient() {
       },
     },
   })
+}
+
+// Alias simplificado para uso direto
+export function supabaseServer() {
+  const cookieStore = cookies()
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name) {
+          return cookieStore.get(name)?.value
+        },
+        set(name, value, options) {
+          try {
+            cookieStore.set(name, value, { path: "/", ...options })
+          } catch {
+            // Server component
+          }
+        },
+        remove(name, options) {
+          try {
+            cookieStore.set(name, "", { path: "/", maxAge: -1, ...options })
+          } catch {
+            // Server component
+          }
+        },
+      },
+    },
+  )
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { MessageSquare, Users, Trophy, Heart, Send, Trash2 } from "lucide-react"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 
 interface Post {
@@ -31,71 +31,69 @@ export function CommunityPage() {
   const [currentUserId, setCurrentUserId] = useState<string>("")
   const supabase = createClient()
 
-  const fetchPosts = useCallback(
-    async (userId: string) => {
-      console.log("[v0] Fetching posts for user:", userId)
+  // Função para buscar posts do banco
+  async function fetchPosts(userId: string) {
+    console.log("[v0] Fetching posts for user:", userId)
 
-      const { data: postsData, error: postsError } = await supabase
-        .from("comunidade")
-        .select(`
+    const { data: postsData, error: postsError } = await supabase
+      .from("comunidade")
+      .select(`
         *,
         users!comunidade_user_id_fkey(name, current_day)
       `)
-        .order("data_postagem", { ascending: false })
-        .limit(20)
+      .order("data_postagem", { ascending: false })
+      .limit(50)
 
-      if (postsError) {
-        console.error("[v0] Error fetching posts:", postsError)
-        return
-      }
+    if (postsError) {
+      console.error("[v0] Error fetching posts:", postsError)
+      return
+    }
 
-      console.log("[v0] Fetched posts:", postsData?.length || 0)
+    console.log("[v0] Fetched posts:", postsData?.length || 0)
 
-      if (postsData) {
-        const postsWithLikes = await Promise.all(
-          postsData.map(async (post) => {
-            const { count } = await supabase
-              .from("curtidas")
-              .select("*", { count: "exact", head: true })
-              .eq("post_id", post.id)
+    if (postsData) {
+      const postsWithLikes = await Promise.all(
+        postsData.map(async (post) => {
+          const { count } = await supabase
+            .from("curtidas")
+            .select("*", { count: "exact", head: true })
+            .eq("post_id", post.id)
 
-            const { data: userLike } = await supabase
-              .from("curtidas")
-              .select("id")
-              .eq("post_id", post.id)
-              .eq("user_id", userId)
-              .single()
+          const { data: userLike } = await supabase
+            .from("curtidas")
+            .select("id")
+            .eq("post_id", post.id)
+            .eq("user_id", userId)
+            .single()
 
-            const userData = post.users as { name?: string; current_day?: number } | null
-            const initials =
-              userData?.name
-                ?.split(" ")
-                .map((n: string) => n[0])
-                .join("")
-                .slice(0, 2) || "U"
+          const userData = post.users as { name?: string; current_day?: number } | null
+          const initials =
+            userData?.name
+              ?.split(" ")
+              .map((n: string) => n[0])
+              .join("")
+              .slice(0, 2) || "U"
 
-            return {
-              id: post.id,
-              author: userData?.name || "Usuário",
-              avatar: initials,
-              day: userData?.current_day || 1,
-              content: post.conteudo,
-              likes: count || 0,
-              time: getTimeAgo(post.data_postagem),
-              user_id: post.user_id,
-              liked_by_user: !!userLike,
-            }
-          }),
-        )
-        setPosts(postsWithLikes)
-        console.log("[v0] Posts with likes set:", postsWithLikes.length)
-      }
-    },
-    [supabase],
-  )
+          return {
+            id: post.id,
+            author: userData?.name || "Usuário",
+            avatar: initials,
+            day: userData?.current_day || 1,
+            content: post.conteudo,
+            likes: count || 0,
+            time: getTimeAgo(post.data_postagem),
+            user_id: post.user_id,
+            liked_by_user: !!userLike,
+          }
+        }),
+      )
+      setPosts(postsWithLikes)
+      console.log("[v0] Posts updated:", postsWithLikes.length)
+    }
+  }
 
   useEffect(() => {
-    const fetchData = async () => {
+    const init = async () => {
       console.log("[v0] Initializing community page")
       const {
         data: { user },
@@ -108,11 +106,13 @@ export function CommunityPage() {
 
       console.log("[v0] User found:", user.id)
       setCurrentUserId(user.id)
+      
+      // Fetch inicial
       await fetchPosts(user.id)
 
-      // Setup realtime subscription for new posts
+      // Setup realtime - escuta novos posts
       const channel = supabase
-        .channel("comunidade-posts")
+        .channel("comunidade-realtime")
         .on(
           "postgres_changes",
           {
@@ -121,20 +121,23 @@ export function CommunityPage() {
             table: "comunidade",
           },
           (payload) => {
-            console.log("[v0] New post received via realtime:", payload)
-            // Refetch posts to get the new one with all relations
+            console.log("[v0] New post via realtime:", payload)
+            // Refetch para pegar dados completos com joins
             fetchPosts(user.id)
           },
         )
-        .subscribe()
+        .subscribe((status) => {
+          console.log("[v0] Realtime subscription status:", status)
+        })
 
       return () => {
-        console.log("[v0] Unsubscribing from realtime channel")
+        console.log("[v0] Cleaning up realtime subscription")
         supabase.removeChannel(channel)
       }
     }
-    fetchData()
-  }, [supabase, fetchPosts])
+    
+    init()
+  }, [])
 
   const handlePost = async () => {
     if (!newPost.trim()) return
