@@ -8,7 +8,7 @@ import { completeDayAction } from "@/lib/actions/progress"
 import type { WorkoutDay } from "@/lib/types/database"
 import { Button } from "@/components/ui/button"
 
-const ReactPlayer = dynamic(() => import("react-player"), { ssr: false })
+const ReactPlayer = dynamic(() => import("react-player/youtube"), { ssr: false })
 
 interface VideoPlayerProps {
   workoutDay: WorkoutDay

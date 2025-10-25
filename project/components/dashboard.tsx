@@ -16,6 +16,7 @@ export function Dashboard({ user, completedDays }: DashboardProps) {
   const [showToast, setShowToast] = useState(false)
 
   const userProgress = calculateUserProgress(completedDays)
+  const firstName = user?.name.split(" ")[0] || "Membro"
 
   const handleTodayWorkout = () => {
     const nextWorkoutUrl = findNextUncompletedWorkout(completedDays)
@@ -74,7 +75,7 @@ export function Dashboard({ user, completedDays }: DashboardProps) {
         <div className="relative z-10">
           <h1 className="text-2xl md:text-3xl font-black mb-2 flex items-center gap-2 text-white">
             <Flame size={32} className="animate-pulse" />
-            BEM-VINDO DE VOLTA, {user?.name.toUpperCase() || "MEMBRO"}!
+            BEM-VINDO DE VOLTA, {firstName.toUpperCase()}!
           </h1>
           <p className="text-base md:text-lg text-white/90 mb-1">
             Você está no <span className="font-bold">DIA {userProgress.currentDay}</span> de 21

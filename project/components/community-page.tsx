@@ -109,6 +109,29 @@ export function CommunityPage() {
       console.log("[v0] User found:", user.id)
       setCurrentUserId(user.id)
       await fetchPosts(user.id)
+
+      // Setup realtime subscription for new posts
+      const channel = supabase
+        .channel("comunidade-posts")
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "comunidade",
+          },
+          (payload) => {
+            console.log("[v0] New post received via realtime:", payload)
+            // Refetch posts to get the new one with all relations
+            fetchPosts(user.id)
+          },
+        )
+        .subscribe()
+
+      return () => {
+        console.log("[v0] Unsubscribing from realtime channel")
+        supabase.removeChannel(channel)
+      }
     }
     fetchData()
   }, [supabase, fetchPosts])
