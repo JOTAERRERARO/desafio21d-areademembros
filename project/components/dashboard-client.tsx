@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Header } from "@/components/header"
 import { Sidebar } from "@/components/sidebar"
 import { Dashboard } from "@/components/dashboard"
+import { DashboardGamification } from "@/components/dashboard-gamification"
 import { WeekModule } from "@/components/week-module"
 import { Mindset } from "@/components/mindset"
 import { Nutrition } from "@/components/nutrition"
@@ -30,7 +31,14 @@ export function DashboardClient({ user, completedDays }: DashboardClientProps) {
   const renderContent = () => {
     switch (currentPage) {
       case "dashboard":
-        return <Dashboard user={user} completedDays={completedDays} />
+        return (
+          <>
+            <DashboardGamification userId={user?.id || ""} userName={user?.name || ""} />
+            <div className="mt-8">
+              <Dashboard user={user} completedDays={completedDays} />
+            </div>
+          </>
+        )
       case "week1":
         return (
           <WeekModule
