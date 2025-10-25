@@ -21,12 +21,10 @@ export default function LoginPage() {
     setIsLoading(true)
     setError(null)
 
-    console.log("[v0] Login attempt for email:", email)
+    console.log("[Auth Debug] Login iniciado", email)
 
     try {
       const supabase = createClient()
-
-      console.log("[v0] Supabase client created, attempting sign in...")
 
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -34,12 +32,26 @@ export default function LoginPage() {
       })
 
       if (signInError) {
-        console.error("[v0] Sign in error:", signInError)
+        console.error("[Auth Debug] Erro de login:", signInError.message)
         throw signInError
       }
 
-      console.log("[v0] Sign in successful, user:", data.user?.email)
+      console.log("[Auth Debug] Login bem-sucedido:", data.user?.email)
 
+      // Aguardar persistência do cookie (importante para SSR)
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
+      // Verificar se a sessão foi criada corretamente
+      const { data: sessionData } = await supabase.auth.getSession()
+      
+      if (!sessionData?.session) {
+        console.error("[Auth Debug] Sessão não foi criada após login")
+        throw new Error("Falha ao criar sessão. Tente novamente.")
+      }
+
+      console.log("[Auth Debug] Sessão ativa:", sessionData.session.user.email)
+
+      // Verificar/criar registro na tabela users
       const { data: userData, error: userError } = await supabase
         .from("users")
         .select("*")
@@ -47,29 +59,31 @@ export default function LoginPage() {
         .single()
 
       if (userError && userError.code === "PGRST116") {
-        console.log("[v0] User not found in users table, creating...")
+        console.log("[Auth Debug] Criando registro de usuário...")
         const { error: insertError } = await supabase.from("users").insert({
           id: data.user?.id,
           email: data.user?.email,
-          name: data.user?.email?.split("@")[0],
+          name: data.user?.user_metadata?.name || data.user?.email?.split("@")[0] || "Membro",
           current_day: 1,
           streak: 0,
           videos_watched: 0,
         })
 
         if (insertError) {
-          console.error("[v0] Error creating user:", insertError)
+          console.error("[Auth Debug] Erro ao criar usuário:", insertError.message)
         } else {
-          console.log("[v0] User created successfully")
+          console.log("[Auth Debug] Usuário criado com sucesso")
         }
       } else if (userData) {
-        console.log("[v0] User found in database:", userData.email)
+        console.log("[Auth Debug] Usuário encontrado:", userData.email)
       }
 
-      console.log("[v0] Redirecting to dashboard with full page reload...")
+      console.log("[Auth Debug] Redirecionando para dashboard...")
+      
+      // Força reload completo da página para garantir que SSR pegue a sessão
       window.location.href = "/dashboard"
     } catch (error: unknown) {
-      console.error("[v0] Login error:", error)
+      console.error("[Auth Debug] Erro no processo de login:", error)
       const errorMessage = error instanceof Error ? error.message : "Erro ao fazer login"
       setError(errorMessage)
       setIsLoading(false)
