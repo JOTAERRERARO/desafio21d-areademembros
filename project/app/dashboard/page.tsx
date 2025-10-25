@@ -4,9 +4,12 @@ import { DashboardClient } from "@/components/dashboard-client"
 
 export default async function DashboardPage() {
   try {
+    console.log("[Dashboard Debug] ==========================================")
+    console.log("[Dashboard Debug] Render SSR iniciado")
+    
     const supabase = await createServerSupabaseClient()
 
-    console.log("[v0] Dashboard: Checking auth...")
+    console.log("[Dashboard Debug] Supabase client criado no SSR")
 
     const {
       data: { user },
@@ -14,25 +17,30 @@ export default async function DashboardPage() {
     } = await supabase.auth.getUser()
 
     if (authError) {
-      console.error("[v0] Dashboard auth error:", authError.message)
+      console.error("[Dashboard Debug] ❌ Erro de autenticação:", authError.message)
       redirect("/login")
     }
 
     if (!user) {
-      console.log("[v0] Dashboard: No user found, redirecting to login")
+      console.log("[Dashboard Debug] ❌ Nenhum usuário detectado, redirecionando para login")
       redirect("/login")
     }
 
-    console.log("[v0] Dashboard: User authenticated:", user.email)
+    console.log("[Dashboard Debug] ✅ Usuário autenticado:", user.email)
+    console.log("[Dashboard Debug] User ID:", user.id)
 
     // Fetch user data from database
+    console.log("[Dashboard Debug] Buscando dados do usuário da tabela users...")
     const { data: userData, error: userError } = await supabase.from("users").select("*").eq("id", user.id).single()
 
     if (userError) {
-      console.error("[v0] Error fetching user data:", userError.message)
+      console.error("[Dashboard Debug] ❌ Erro ao buscar dados do usuário:", userError.message)
+    } else {
+      console.log("[Dashboard Debug] ✅ Dados do usuário carregados:", userData?.name)
     }
 
     // Fetch user progress
+    console.log("[Dashboard Debug] Buscando progresso do usuário...")
     const { data: progressData, error: progressError } = await supabase
       .from("user_progress")
       .select("day_number")
@@ -40,12 +48,14 @@ export default async function DashboardPage() {
       .order("day_number", { ascending: true })
 
     if (progressError) {
-      console.error("[v0] Error fetching progress data:", progressError.message)
+      console.error("[Dashboard Debug] ❌ Erro ao buscar progresso:", progressError.message)
     }
 
     const completedDays = progressData?.map((p) => p.day_number) || []
 
-    console.log("[v0] Dashboard: Rendering with", completedDays.length, "completed days")
+    console.log("[Dashboard Debug] ✅ Renderizando dashboard com", completedDays.length, "dias completos")
+    console.log("[Dashboard Debug] Dias completos:", completedDays)
+    console.log("[Dashboard Debug] ==========================================")
 
     return <DashboardClient user={userData} completedDays={completedDays} />
   } catch (error) {
