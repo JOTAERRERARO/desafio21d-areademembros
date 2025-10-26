@@ -52,7 +52,9 @@ export function VideoPlayer({
     if (!url) return ""
     const regex = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([\w-]{11})/
     const match = url.match(regex)
-    return match ? `https://www.youtube.com/embed/${match[1]}?rel=0&modestbranding=1&showinfo=0` : url
+    return match
+      ? `https://www.youtube.com/embed/${match[1]}?rel=0&modestbranding=1&showinfo=0&cc_load_policy=1&cc_lang_pref=pt-BR&hl=pt-BR`
+      : url
   }
 
   const embedUrl = getYouTubeEmbedUrl(videoUrl)

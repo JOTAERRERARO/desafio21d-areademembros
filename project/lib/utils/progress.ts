@@ -61,11 +61,27 @@ export function calculateUserProgress(completedDays: number[]): UserProgress {
     week.isCompleted = week.completedDays === week.totalDays
   })
 
-  // 🔓 Lógica de desbloqueio forçada e à prova de erro
+  // 🔓 Lógica de desbloqueio forçada e à prova de erro (com espião)
   weeks[1].isLocked = !weeks[0].isCompleted
   weeks[2].isLocked = !(weeks[0].isCompleted && weeks[1].isCompleted)
 
-  // Reforço absoluto (força desbloqueio da 3 se 1 e 2 completas)
+  // 🧠 Espião de progresso: se a Semana 2 estiver concluída, libera e marca a 3 como desbloqueada
+  if (weeks[1].isCompleted) {
+    weeks[2].isLocked = false
+
+    // Se o usuário completou todos os 14 primeiros dias, ativa automaticamente a 3
+    if (completedDays.length >= 14) {
+      const missingDays = Array.from({ length: 7 }, (_, i) => 15 + i)
+      missingDays.forEach((day) => {
+        if (!completedDays.includes(day)) completedDays.push(day)
+      })
+      weeks[2].completedDays = 7
+      weeks[2].isCompleted = false // mantém como ativa
+      weeks[2].progress = 0
+    }
+  }
+
+  // Reforço absoluto (se 1 e 2 completas, desbloqueia totalmente a 3)
   if (weeks[0].isCompleted && weeks[1].isCompleted) {
     weeks[2].isLocked = false
   }
