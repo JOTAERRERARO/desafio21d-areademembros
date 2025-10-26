@@ -3,12 +3,9 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, CheckCircle2, ChevronRight, Clock } from "lucide-react"
-import dynamic from "next/dynamic"
 import { completeDayAction } from "@/lib/actions/progress"
 import type { WorkoutDay } from "@/lib/types/database"
 import { Button } from "@/components/ui/button"
-
-const ReactPlayer = dynamic(() => import("react-player"), { ssr: false })
 
 interface VideoPlayerProps {
   workoutDay: WorkoutDay
@@ -50,6 +47,16 @@ export function VideoPlayer({
 
   const videoUrl = workoutDay.exercises[0]?.url || ""
 
+  // Extrai o ID do YouTube de links longos ou curtos
+  const getYouTubeEmbedUrl = (url: string) => {
+    if (!url) return ""
+    const regex = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([\w-]{11})/
+    const match = url.match(regex)
+    return match ? `https://www.youtube.com/embed/${match[1]}?rel=0&modestbranding=1&showinfo=0` : url
+  }
+
+  const embedUrl = getYouTubeEmbedUrl(videoUrl)
+
   return (
     <div className="min-h-screen bg-dark-bg">
       <div className="max-w-6xl mx-auto p-6">
@@ -63,23 +70,14 @@ export function VideoPlayer({
 
         <div className="bg-dark-card border border-dark-border rounded-xl overflow-hidden">
           <div className="aspect-video bg-black relative">
-            {videoUrl ? (
-              <ReactPlayer
-                url={videoUrl}
+            {embedUrl ? (
+              <iframe
+                src={embedUrl}
                 width="100%"
                 height="100%"
-                controls
-                playing={false}
-                config={{
-                  youtube: {
-                    playerVars: {
-                      origin: typeof window !== "undefined" ? window.location.origin : undefined,
-                      modestbranding: 1,
-                      rel: 0,
-                      showinfo: 0,
-                    },
-                  },
-                }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400">
