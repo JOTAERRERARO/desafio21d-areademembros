@@ -69,8 +69,12 @@ export function calculateUserProgress(completedDays: number[]): UserProgress {
   // 🔒 Corrige desbloqueio das semanas
   // Semana 2 só libera quando a 1 estiver concluída
   weeks[1].isLocked = !weeks[0].isCompleted
-  // Semana 3 só libera quando a 1 e 2 estiverem concluídas
-  weeks[2].isLocked = !(weeks[0].isCompleted && weeks[1].isCompleted)
+weeks[2].isLocked = !weeks[1].isCompleted || !weeks[0].isCompleted
+
+// Reforço: se 1 e 2 estiverem completas, garante desbloqueio da 3
+if (weeks[0].isCompleted && weeks[1].isCompleted) {
+  weeks[2].isLocked = false
+}
 
   // Define semana ativa (primeira não concluída e não bloqueada)
   let activeWeek = 1

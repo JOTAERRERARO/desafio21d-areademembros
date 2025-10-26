@@ -8,7 +8,7 @@ import { completeDayAction } from "@/lib/actions/progress"
 import type { WorkoutDay } from "@/lib/types/database"
 import { Button } from "@/components/ui/button"
 
-const ReactPlayer = dynamic(() => import("react-player"), { ssr: false })
+const ReactPlayer = dynamic(() => import("react-player/lazy"), { ssr: false })
 
 interface VideoPlayerProps {
   workoutDay: WorkoutDay
@@ -17,17 +17,21 @@ interface VideoPlayerProps {
   completedDays: number[]
 }
 
-export function VideoPlayer({ workoutDay, isCompleted, nextDay, completedDays }: VideoPlayerProps) {
+export function VideoPlayer({
+  workoutDay,
+  isCompleted,
+  nextDay,
+  completedDays,
+}: VideoPlayerProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [localCompleted, setLocalCompleted] = useState(isCompleted)
   const router = useRouter()
 
   const handleComplete = async () => {
     if (isSubmitting || localCompleted) return
-
     setIsSubmitting(true)
-    const result = await completeDayAction(workoutDay.day)
 
+    const result = await completeDayAction(workoutDay.day)
     if (result.error) {
       alert("Erro ao marcar dia como completo: " + result.error)
       setIsSubmitting(false)
@@ -40,11 +44,8 @@ export function VideoPlayer({ workoutDay, isCompleted, nextDay, completedDays }:
   }
 
   const handleNextDay = () => {
-    if (nextDay) {
-      router.push(`/video/${nextDay.day}`)
-    } else {
-      router.push("/dashboard")
-    }
+    if (nextDay) router.push(`/video/${nextDay.day}`)
+    else router.push("/dashboard")
   }
 
   const videoUrl = workoutDay.exercises[0]?.url || ""
@@ -72,16 +73,18 @@ export function VideoPlayer({ workoutDay, isCompleted, nextDay, completedDays }:
                 config={{
                   youtube: {
                     playerVars: {
-                      cc_lang_pref: "pt-BR", // Force Portuguese subtitles
-                      cc_load_policy: 1, // Force subtitle display
-                      hl: "pt-BR", // Set player interface language to Portuguese
-                      showinfo: 1,
+                      origin: typeof window !== "undefined" ? window.location.origin : undefined,
+                      modestbranding: 1,
+                      rel: 0,
+                      showinfo: 0,
                     },
                   },
                 }}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">Vídeo não disponível</div>
+              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                Vídeo não disponível
+              </div>
             )}
           </div>
 
@@ -142,22 +145,6 @@ export function VideoPlayer({ workoutDay, isCompleted, nextDay, completedDays }:
                 </Button>
               )}
             </div>
-
-            {workoutDay.exercises.length > 0 && (
-              <div className="border-t border-dark-border pt-6">
-                <h3 className="font-bold text-lg mb-4">Sobre este treino</h3>
-                <div className="space-y-3">
-                  {workoutDay.exercises.map((exercise) => (
-                    <div key={exercise.id} className="flex items-start gap-3 p-4 bg-dark-bg rounded-lg">
-                      <div className="flex-1">
-                        <h4 className="font-semibold mb-1">{exercise.title}</h4>
-                        {exercise.duration && <p className="text-sm text-gray-400">Duração: {exercise.duration}</p>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
