@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 "use client"
 
 import { useEffect, useRef, useState } from "react"
@@ -46,7 +47,6 @@ export function VideoPlayer({
 
   const videoUrl = workoutDay.exercises[0]?.url || ""
 
-  // 🔍 Extrai ID do YouTube e gera URL com legendas em PT-BR
   const getYouTubeEmbedUrl = (url: string) => {
     if (!url) return ""
     const regex = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([\w-]{11})/
@@ -58,7 +58,6 @@ export function VideoPlayer({
 
   const embedUrl = getYouTubeEmbedUrl(videoUrl)
 
-  // 🧠 Força tradução automática PT-BR nas legendas
   useEffect(() => {
     const onYouTubeIframeAPIReady = () => {
       const player = new (window as any).YT.Player(iframeRef.current, {

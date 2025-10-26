@@ -38,6 +38,7 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarP
 
   // 🧠 Espião de progresso local — força liberação da semana 3
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
     const baseMenu: MenuItem[] = [
       { id: "dashboard", label: "PAINEL GERAL", icon: LayoutDashboard, section: "main" },
       { id: "week1", label: "Semana 1: Base", icon: Flame, section: "modules", completed: true, badge: "1" },
@@ -52,10 +53,11 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarP
       { id: "support", label: "Suporte", icon: HelpCircle, section: "tools" },
     ]
 
-    // 🧩 Se Semana 1 e 2 estão concluídas → libera a 3 automaticamente
-    const allWeeksDone = baseMenu.find(i => i.id === "week1")?.completed && baseMenu.find(i => i.id === "week2")?.completed
+    const allWeeksDone =
+      baseMenu.find((i) => i.id === "week1")?.completed && baseMenu.find((i) => i.id === "week2")?.completed
+
     if (allWeeksDone) {
-      const week3 = baseMenu.find(i => i.id === "week3")
+      const week3 = baseMenu.find((i) => i.id === "week3")
       if (week3) week3.locked = false
     }
 
