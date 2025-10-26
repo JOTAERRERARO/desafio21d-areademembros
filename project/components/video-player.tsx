@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, CheckCircle2, ChevronRight, Clock } from "lucide-react"
 import { completeDayAction } from "@/lib/actions/progress"
@@ -23,18 +23,17 @@ export function VideoPlayer({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [localCompleted, setLocalCompleted] = useState(isCompleted)
   const router = useRouter()
+  const iframeRef = useRef<HTMLIFrameElement>(null)
 
   const handleComplete = async () => {
     if (isSubmitting || localCompleted) return
     setIsSubmitting(true)
-
     const result = await completeDayAction(workoutDay.day)
     if (result.error) {
       alert("Erro ao marcar dia como completo: " + result.error)
       setIsSubmitting(false)
       return
     }
-
     setLocalCompleted(true)
     setIsSubmitting(false)
     router.refresh()
@@ -47,17 +46,45 @@ export function VideoPlayer({
 
   const videoUrl = workoutDay.exercises[0]?.url || ""
 
-  // Extrai o ID do YouTube de links longos ou curtos
+  // 🔍 Extrai ID do YouTube e gera URL com legendas em PT-BR
   const getYouTubeEmbedUrl = (url: string) => {
     if (!url) return ""
     const regex = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([\w-]{11})/
     const match = url.match(regex)
     return match
-      ? `https://www.youtube.com/embed/${match[1]}?rel=0&modestbranding=1&showinfo=0&cc_load_policy=1&cc_lang_pref=pt-BR&hl=pt-BR`
+      ? `https://www.youtube.com/embed/${match[1]}?enablejsapi=1&modestbranding=1&rel=0&showinfo=0&cc_load_policy=1&cc_lang_pref=pt-BR&hl=pt-BR`
       : url
   }
 
   const embedUrl = getYouTubeEmbedUrl(videoUrl)
+
+  // 🧠 Força tradução automática PT-BR nas legendas
+  useEffect(() => {
+    const onYouTubeIframeAPIReady = () => {
+      const player = new (window as any).YT.Player(iframeRef.current, {
+        events: {
+          onReady: (event: any) => {
+            try {
+              event.target.setOption("captions", "track", { languageCode: "pt" })
+              event.target.setOption("cc", "track", { languageCode: "pt" })
+            } catch (e) {
+              console.warn("⚠️ Legendas automáticas não disponíveis para este vídeo.")
+            }
+          },
+        },
+      })
+    }
+
+    if (!(window as any).YT) {
+      const tag = document.createElement("script")
+      tag.src = "https://www.youtube.com/iframe_api"
+      const firstScriptTag = document.getElementsByTagName("script")[0]
+      firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag)
+      ;(window as any).onYouTubeIframeAPIReady = onYouTubeIframeAPIReady
+    } else {
+      onYouTubeIframeAPIReady()
+    }
+  }, [embedUrl])
 
   return (
     <div className="min-h-screen bg-dark-bg">
@@ -74,6 +101,7 @@ export function VideoPlayer({
           <div className="aspect-video bg-black relative">
             {embedUrl ? (
               <iframe
+                ref={iframeRef}
                 src={embedUrl}
                 width="100%"
                 height="100%"
