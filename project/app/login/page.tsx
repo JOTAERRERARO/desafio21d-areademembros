@@ -21,8 +21,12 @@ export default function LoginPage() {
     setIsLoading(true)
     setError(null)
 
+    console.log("[v0] Login attempt for email:", email)
+
     try {
       const supabase = createClient()
+
+      console.log("[v0] Supabase client created, attempting sign in...")
 
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -30,16 +34,11 @@ export default function LoginPage() {
       })
 
       if (signInError) {
+        console.error("[v0] Sign in error:", signInError)
         throw signInError
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      const { data: sessionData } = await supabase.auth.getSession()
-      
-      if (!sessionData?.session) {
-        throw new Error("Falha ao criar sessão. Tente novamente.")
-      }
+      console.log("[v0] Sign in successful, user:", data.user?.email)
 
       const { data: userData, error: userError } = await supabase
         .from("users")
@@ -48,18 +47,29 @@ export default function LoginPage() {
         .single()
 
       if (userError && userError.code === "PGRST116") {
-        await supabase.from("users").insert({
+        console.log("[v0] User not found in users table, creating...")
+        const { error: insertError } = await supabase.from("users").insert({
           id: data.user?.id,
           email: data.user?.email,
-          name: data.user?.user_metadata?.name || data.user?.email?.split("@")[0] || "Membro",
+          name: data.user?.email?.split("@")[0],
           current_day: 1,
           streak: 0,
           videos_watched: 0,
         })
+
+        if (insertError) {
+          console.error("[v0] Error creating user:", insertError)
+        } else {
+          console.log("[v0] User created successfully")
+        }
+      } else if (userData) {
+        console.log("[v0] User found in database:", userData.email)
       }
 
+      console.log("[v0] Redirecting to dashboard with full page reload...")
       window.location.href = "/dashboard"
     } catch (error: unknown) {
+      console.error("[v0] Login error:", error)
       const errorMessage = error instanceof Error ? error.message : "Erro ao fazer login"
       setError(errorMessage)
       setIsLoading(false)

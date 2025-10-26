@@ -8,14 +8,7 @@ import { completeDayAction } from "@/lib/actions/progress"
 import type { WorkoutDay } from "@/lib/types/database"
 import { Button } from "@/components/ui/button"
 
-const ReactPlayer = dynamic(() => import("react-player"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full aspect-video flex items-center justify-center bg-black/20 rounded-xl">
-      Carregando player...
-    </div>
-  ),
-});
+const ReactPlayer = dynamic(() => import("react-player"), { ssr: false })
 
 interface VideoPlayerProps {
   workoutDay: WorkoutDay
@@ -55,13 +48,6 @@ export function VideoPlayer({ workoutDay, isCompleted, nextDay, completedDays }:
   }
 
   const videoUrl = workoutDay.exercises[0]?.url || ""
-  
-  // Limpar URL do YouTube para formato correto
-  const cleanVideoUrl = videoUrl
-    .replace("watch?v=", "embed/")
-    .replace(/&t=\d+s?/g, "")
-    .split("&")[0]
-    .trim()
 
   return (
     <div className="min-h-screen bg-dark-bg">
@@ -76,9 +62,9 @@ export function VideoPlayer({ workoutDay, isCompleted, nextDay, completedDays }:
 
         <div className="bg-dark-card border border-dark-border rounded-xl overflow-hidden">
           <div className="aspect-video bg-black relative">
-            {cleanVideoUrl ? (
+            {videoUrl ? (
               <ReactPlayer
-                url={cleanVideoUrl}
+                url={videoUrl}
                 width="100%"
                 height="100%"
                 controls
@@ -86,9 +72,9 @@ export function VideoPlayer({ workoutDay, isCompleted, nextDay, completedDays }:
                 config={{
                   youtube: {
                     playerVars: {
-                      cc_lang_pref: "pt-BR",
-                      cc_load_policy: 1,
-                      hl: "pt-BR",
+                      cc_lang_pref: "pt-BR", // Force Portuguese subtitles
+                      cc_load_policy: 1, // Force subtitle display
+                      hl: "pt-BR", // Set player interface language to Portuguese
                       showinfo: 1,
                     },
                   },
