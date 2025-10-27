@@ -20,6 +20,13 @@ interface SidebarProps {
   onClose: () => void
   currentPage: string
   onPageChange: (page: string) => void
+
+  // 👇 adiciona essas novas props
+  progress?: {
+    week1: { isLocked: boolean; isCompleted: boolean; isActive: boolean }
+    week2: { isLocked: boolean; isCompleted: boolean; isActive: boolean }
+    week3: { isLocked: boolean; isCompleted: boolean; isActive: boolean }
+  }
 }
 
 interface MenuItem {
@@ -33,17 +40,42 @@ interface MenuItem {
   badge?: string
 }
 
-export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, currentPage, onPageChange, progress }: SidebarProps) {
   const [menu, setMenu] = useState<MenuItem[]>([])
 
-  // 🧠 Espião de progresso local — força liberação da semana 3
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
     const baseMenu: MenuItem[] = [
       { id: "dashboard", label: "PAINEL GERAL", icon: LayoutDashboard, section: "main" },
-      { id: "week1", label: "Semana 1: Base", icon: Flame, section: "modules", completed: true, badge: "1" },
-      { id: "week2", label: "Semana 2: Queima", icon: Flame, section: "modules", completed: true, badge: "2" },
-      { id: "week3", label: "Semana 3: Performance", icon: Flame, section: "modules", locked: true, badge: "3" },
+      {
+        id: "week1",
+        label: "Semana 1: Base",
+        icon: Flame,
+        section: "modules",
+        completed: progress?.week1.isCompleted,
+        current: progress?.week1.isActive,
+        locked: progress?.week1.isLocked,
+        badge: "1",
+      },
+      {
+        id: "week2",
+        label: "Semana 2: Queima",
+        icon: Flame,
+        section: "modules",
+        completed: progress?.week2.isCompleted,
+        current: progress?.week2.isActive,
+        locked: progress?.week2.isLocked,
+        badge: "2",
+      },
+      {
+        id: "week3",
+        label: "Semana 3: Performance",
+        icon: Flame,
+        section: "modules",
+        completed: progress?.week3.isCompleted,
+        current: progress?.week3.isActive,
+        locked: progress?.week3.isLocked,
+        badge: "3",
+      },
       { id: "mindset", label: "Mentalidade Alpha", icon: Brain, section: "modules" },
       { id: "nutrition", label: "Nutrição Inteligente", icon: Utensils, section: "modules" },
       { id: "bonuses", label: "Bônus Exclusivos", icon: Gift, section: "modules" },
@@ -52,17 +84,8 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarP
       { id: "community", label: "Comunidade", icon: MessageSquare, section: "tools" },
       { id: "support", label: "Suporte", icon: HelpCircle, section: "tools" },
     ]
-
-    const allWeeksDone =
-      baseMenu.find((i) => i.id === "week1")?.completed && baseMenu.find((i) => i.id === "week2")?.completed
-
-    if (allWeeksDone) {
-      const week3 = baseMenu.find((i) => i.id === "week3")
-      if (week3) week3.locked = false
-    }
-
     setMenu(baseMenu)
-  }, [])
+  }, [progress])
 
   const sectionTitles = {
     main: "",
@@ -86,7 +109,7 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarP
         <nav className="py-6">
           {menu.map((item, index) => {
             const showSectionTitle = index === 0 || menu[index - 1].section !== item.section
-            const isUnlocked = !item.locked || item.id === "week3"
+            const isUnlocked = !item.locked
 
             return (
               <div key={item.id}>
@@ -106,27 +129,17 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarP
                     currentPage === item.id
                       ? "bg-primary/20 border-l-4 border-primary text-primary"
                       : !isUnlocked
-                        ? "opacity-40 cursor-not-allowed"
-                        : "hover:bg-white/5 hover:translate-x-1 border-l-4 border-transparent"
+                      ? "opacity-40 cursor-not-allowed"
+                      : "hover:bg-white/5 hover:translate-x-1 border-l-4 border-transparent"
                   }`}
-                  style={isUnlocked ? { pointerEvents: "auto", opacity: 1 } : {}}
                 >
                   <item.icon size={20} />
                   <span className="flex-1 text-left text-sm font-semibold">{item.label}</span>
 
-                  {item.badge && (
-                    <span
-                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                        item.current ? "bg-primary text-white" : "bg-dark-bg"
-                      }`}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-
+                  {/* 🔥/✅/🔒 Ícones dinâmicos */}
                   {item.completed && <CheckCircle2 size={18} className="text-accent-green" />}
                   {item.current && <Flame size={18} className="text-primary animate-pulse" />}
-                  {!isUnlocked && <Lock size={18} />}
+                  {item.locked && <Lock size={18} className="text-gray-500" />}
                 </button>
               </div>
             )
