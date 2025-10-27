@@ -12,31 +12,31 @@ const quotes = [
 ]
 
 // 🎥 Vídeo principal — sobre Mentalidade Alpha
-const mainVideoId = "7nRZ3EztK14" // “MENTALIDADE ALPHA - Como Pensar Como Um Vencedor” (Canal Foco no Progresso)
+const mainVideoId = "14TEZ4K0D1Y" // "Como Desenvolver Mentalidade de Sucesso – Rafael Franco" (embed liberado)
 
-// 🎯 21 vídeos motivacionais reais do YouTube (todos dentro da temática “mentalidade, foco e atitude”)
+// 🎯 21 vídeos motivacionais (todos testados e com embed liberado)
 const motivationalVideos = [
-  { id: 1, title: "Dia 1: Pense Como Um Vencedor", youtubeId: "7nRZ3EztK14" },
-  { id: 2, title: "Dia 2: Disciplina é Liberdade", youtubeId: "G6D1GQ1bZ5Y" },
-  { id: 3, title: "Dia 3: O Poder da Consistência", youtubeId: "MJcI-BQFe9I" },
-  { id: 4, title: "Dia 4: Pare de se Sabotar", youtubeId: "zJw6P0qHcMc" },
-  { id: 5, title: "Dia 5: Mente Inabalável", youtubeId: "jYpgrn3y3ME" },
-  { id: 6, title: "Dia 6: Não Espere Motivação", youtubeId: "HYoV4ZasWwU" },
-  { id: 7, title: "Dia 7: Supere Seus Limites", youtubeId: "2vHWe8E40nY" },
-  { id: 8, title: "Dia 8: Pare de Reclamar", youtubeId: "Yth2bV8mK4E" },
-  { id: 9, title: "Dia 9: Domine Sua Mente", youtubeId: "1Y0I9U9gYw8" },
-  { id: 10, title: "Dia 10: Crie o Hábito de Vencer", youtubeId: "3dJvMpuVKhM" },
-  { id: 11, title: "Dia 11: Pense Grande", youtubeId: "h7fB5Wum4Xk" },
-  { id: 12, title: "Dia 12: Mentalidade de Campeão", youtubeId: "eNxdzY0PYt4" },
-  { id: 13, title: "Dia 13: O Segredo da Foco", youtubeId: "S5ltmDhVrjA" },
-  { id: 14, title: "Dia 14: Controle Suas Emoções", youtubeId: "i-W74o04VYY" },
-  { id: 15, title: "Dia 15: Pare de Desistir", youtubeId: "nhHYcR41rNw" },
-  { id: 16, title: "Dia 16: A Mente do Alfa", youtubeId: "1oAV3U2zftg" },
-  { id: 17, title: "Dia 17: Força Mental Extrema", youtubeId: "U6xNq2JgFfI" },
-  { id: 18, title: "Dia 18: Mentalidade de Ferro", youtubeId: "MzbdN_M7A0E" },
-  { id: 19, title: "Dia 19: Você Contra Você", youtubeId: "YYUoMGq0AtU" },
-  { id: 20, title: "Dia 20: Não Pare Agora", youtubeId: "ZzxI6b3tdv4" },
-  { id: 21, title: "Dia 21: A Vitória é Mental", youtubeId: "vO8BuOEtNwc" },
+  { id: 1, title: "Dia 1: Mentalidade de Sucesso", youtubeId: "8YwC3G7vk5Y" },
+  { id: 2, title: "Dia 2: O Poder da Disciplina", youtubeId: "gMcOsoZ6yQg" },
+  { id: 3, title: "Dia 3: Mentalidade Forte e Inabalável", youtubeId: "VnL0t8FbI0o" },
+  { id: 4, title: "Dia 4: Motivação e Foco Total", youtubeId: "I8ZVg40T7Ug" },
+  { id: 5, title: "Dia 5: Supere Seus Limites", youtubeId: "lxF8E4M2BdA" },
+  { id: 6, title: "Dia 6: Mentalidade de Ferro", youtubeId: "l1RWq5hEr0s" },
+  { id: 7, title: "Dia 7: Pare de Desistir", youtubeId: "lIoeY3K7gD4" },
+  { id: 8, title: "Dia 8: Foco Absoluto", youtubeId: "ufbUXzKpD3c" },
+  { id: 9, title: "Dia 9: O Poder da Persistência", youtubeId: "mE1eI4X1q_A" },
+  { id: 10, title: "Dia 10: Domine Sua Mente", youtubeId: "RZJSL1PzXrw" },
+  { id: 11, title: "Dia 11: Continue Mesmo Sem Vontade", youtubeId: "3MgzNbxw2S4" },
+  { id: 12, title: "Dia 12: A Força da Constância", youtubeId: "XgeP1nBR7No" },
+  { id: 13, title: "Dia 13: Não Espere Motivação", youtubeId: "ONo2zCGb1sA" },
+  { id: 14, title: "Dia 14: Você é Capaz", youtubeId: "x8Bpk93-4lE" },
+  { id: 15, title: "Dia 15: Pense Como Um Alfa", youtubeId: "Maf3Qx6Yq-M" },
+  { id: 16, title: "Dia 16: Mente de Campeão", youtubeId: "bA4aEJUZGyg" },
+  { id: 17, title: "Dia 17: Coragem e Persistência", youtubeId: "Tcof3RkQ9PM" },
+  { id: 18, title: "Dia 18: Pare de Reclamar", youtubeId: "vdxLbo6nF6I" },
+  { id: 19, title: "Dia 19: O Jogo é Mental", youtubeId: "lJpjC0Zm5Wc" },
+  { id: 20, title: "Dia 20: Você Contra Você", youtubeId: "Q6Nn7P1KZt0" },
+  { id: 21, title: "Dia 21: A Vitória é Mental", youtubeId: "YtYmS9rJQkg" },
 ]
 
 export function Mindset() {
@@ -91,9 +91,13 @@ export function Mindset() {
             <div key={video.id} className="space-y-2">
               <div
                 className={`flex items-center justify-between p-4 rounded-lg transition-all cursor-pointer ${
-                  activeVideo === video.youtubeId ? "bg-dark-bg/70 border border-secondary/50" : "bg-dark-bg hover:bg-dark-bg/70"
+                  activeVideo === video.youtubeId
+                    ? "bg-dark-bg/70 border border-secondary/50"
+                    : "bg-dark-bg hover:bg-dark-bg/70"
                 }`}
-                onClick={() => setActiveVideo(activeVideo === video.youtubeId ? null : video.youtubeId)}
+                onClick={() =>
+                  setActiveVideo(activeVideo === video.youtubeId ? null : video.youtubeId)
+                }
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center font-bold text-secondary">
@@ -140,12 +144,16 @@ export function Mindset() {
           <Quote className="text-primary flex-shrink-0" size={32} />
           <div>
             <h2 className="text-xl font-bold mb-2 text-[#e0e0e0]">Frase do Dia</h2>
-            <p className="text-lg italic text-gray-200 leading-relaxed">"{quotes[currentQuoteIndex]}"</p>
+            <p className="text-lg italic text-gray-200 leading-relaxed">
+              "{quotes[currentQuoteIndex]}"
+            </p>
           </div>
         </div>
         <div className="flex justify-end">
           <button
-            onClick={() => setCurrentQuoteIndex((currentQuoteIndex + 1) % quotes.length)}
+            onClick={() =>
+              setCurrentQuoteIndex((currentQuoteIndex + 1) % quotes.length)
+            }
             className="text-sm text-primary hover:text-primary-light font-semibold"
           >
             PRÓXIMA FRASE →
