@@ -1,15 +1,17 @@
-import { NextApiRequest, NextApiResponse } from "next"
 import { createClient } from "@supabase/supabase-js"
 
-// ✅ Inicializa cliente Supabase com Service Role Key (importante para criar usuários)
+/**
+ * 🚀 Webhook GGCheckout → Supabase
+ * Cria automaticamente o usuário quando o pagamento for aprovado.
+ */
+
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-// 🚀 Webhook GGCheckout
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Apenas POST é permitido
+export default async function handler(req, res) {
+  // ✅ Permitir apenas POST
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" })
   }
@@ -17,26 +19,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const payload = req.body
 
-    // 🔍 Valida o evento
+    // ⚠️ Verifica se o corpo é válido
     if (!payload || !payload.event) {
+      console.error("❌ Payload inválido:", payload)
       return res.status(400).json({ error: "Payload inválido" })
     }
 
-    // ⚙️ Aceita apenas eventos de pagamento aprovado
+    // 🧾 Aceita apenas eventos de pagamento aprovado
     const validEvents = ["pix.paid", "card.paid"]
     if (!validEvents.includes(payload.event)) {
+      console.log(`ℹ️ Evento ignorado: ${payload.event}`)
       return res.status(200).json({ ignored: true })
     }
 
-    // 🧾 Extrai dados do cliente
+    // 📧 Extrai informações do comprador
     const email = payload?.customer?.email
     const name = payload?.customer?.name || "Novo Usuário"
 
     if (!email) {
-      return res.status(400).json({ error: "Email não encontrado no payload" })
+      console.error("❌ Email ausente no payload:", payload)
+      return res.status(400).json({ error: "Email não encontrado" })
     }
 
-    // 🔑 Cria usuário no Supabase Auth
+    // 🧠 Cria o usuário no Supabase Auth
     const { error: createError } = await supabase.auth.admin.createUser({
       email,
       password: "123456",
@@ -45,11 +50,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
 
     if (createError && !createError.message.includes("already registered")) {
-      console.error("Erro ao criar usuário:", createError)
+      console.error("❌ Erro ao criar usuário:", createError)
       throw createError
     }
 
-    // 💾 Adiciona na tabela users (caso exista)
+    // 💾 Atualiza ou insere na tabela "users" (opcional)
     await supabase.from("users").upsert({
       email,
       name,
@@ -63,4 +68,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error("❌ Erro no webhook:", err)
     return res.status(500).json({ error: "Erro interno ao processar webhook" })
   }
+}
+
+// ⚙️ Configuração para interpretar JSON corretamente no Vercel
+export const config = {
+  api: {
+    bodyParser: true, // Garante que o req.body venha como objeto JSON
+  },
 }
