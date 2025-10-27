@@ -126,7 +126,13 @@ export function WeekModule({
         {days.map((day) => {
           const isExpanded = expandedDay === day.day
           const isCompleted = completedDays.includes(day.day)
-          const isLocked = day.day > 1 && !completedDays.includes(day.day - 1)
+
+          // Calcula se o dia anterior da MESMA semana foi concluído
+          const dayIndexInWeek = ((day.day - 1) % 7) + 1
+          const isLocked =
+            (weekNumber > 1 && completedDays.filter((d) => d >= (weekNumber - 1) * 7 + 1 && d <= weekNumber * 7 - 7).length < 7)
+              ? false // desbloqueia se todas as semanas anteriores completas
+              : dayIndexInWeek > 1 && !completedDays.includes(day.day - 1)
 
           return (
             <div
