@@ -31,33 +31,24 @@ export function WeekModule({
   isActive,
 }: WeekModuleProps) {
   const [expandedDay, setExpandedDay] = useState<number | null>(null)
-  const [dayNotes, setDayNotes] = useState<{ [key: number]: string }>({})
+  const [dayNotes, setDayNotes] = useState<Record<number, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
 
-  // Marca o dia como completo e atualiza o progresso
   const markDayComplete = async (day: number) => {
     if (!userId || isSubmitting) return
-
     setIsSubmitting(true)
     const result = await completeDayAction(day)
-
-    if (result.error) {
-      alert("Erro ao marcar dia como completo: " + result.error)
-    }
-
+    if (result?.error) alert("Erro ao marcar dia como completo: " + result.error)
     setIsSubmitting(false)
     router.refresh()
   }
 
   const handleNoteChange = (day: number, note: string) => {
-    setDayNotes((prev) => ({
-      ...prev,
-      [day]: note,
-    }))
+    setDayNotes((prev) => ({ ...prev, [day]: note }))
   }
 
-  // 🔒 Se a semana está bloqueada, mostra tela de bloqueio
+  // 🔒 Se a semana está bloqueada, mostra cartão de bloqueio
   if (isLocked) {
     return (
       <div className="space-y-6">
@@ -83,7 +74,13 @@ export function WeekModule({
     )
   }
 
-  // 🔥 Semana ativa (desbloqueada)
+  // Helpers de semana
+  const startOfWeek = (weekNumber - 1) * 7 + 1   // 1, 8, 15
+  const endOfWeek   = weekNumber * 7             // 7, 14, 21
+
+  const completedInThisWeek = completedDays.filter((d) => d >= startOfWeek && d <= endOfWeek).length
+  const weekProgressPct = Math.round((completedInThisWeek / 7) * 100)
+
   return (
     <div className="space-y-6">
       <div
@@ -108,23 +105,16 @@ export function WeekModule({
           </div>
         </div>
 
-        {/* Barra de progresso da semana */}
+        {/* Progresso da semana */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-400">{totalDays} treinos</span>
-            <span className="text-primary font-bold">
-              {Math.round(
-                (completedDays.filter((d) => d >= (weekNumber - 1) * 7 + 1 && d <= weekNumber * 7).length / 7) * 100
-              )}
-              % completo
-            </span>
+            <span className="text-primary font-bold">{weekProgressPct}% completo</span>
           </div>
           <div className="w-full bg-dark-bg rounded-full h-3 overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-primary to-accent-yellow transition-all duration-500"
-              style={{
-                width: `${(completedDays.filter((d) => d >= (weekNumber - 1) * 7 + 1 && d <= weekNumber * 7).length / 7) * 100}%`,
-              }}
+              style={{ width: `${weekProgressPct}%` }}
             />
           </div>
         </div>
@@ -136,20 +126,12 @@ export function WeekModule({
           const isExpanded = expandedDay === day.day
           const isCompleted = completedDays.includes(day.day)
 
-          // Calcula se o dia anterior está completo (para desbloquear o próximo)
-          const previousDayCompleted =
-            day.day === 1 ? true : completedDays.includes(day.day - 1)
-
-          // Calcula se a semana anterior está concluída
-          const previousWeekEnd = (weekNumber - 1) * 7
-          const previousWeekDays = completedDays.filter((d) => d <= previousWeekEnd).length
-          const previousWeekCompleted = previousWeekDays >= previousWeekEnd
-
-          // 🔒 Lógica de bloqueio correta
-          const isLocked =
-            weekNumber > 1 && !previousWeekCompleted
-              ? true // semana anterior não concluída
-              : day.day > (weekNumber - 1) * 7 + 1 && !previousDayCompleted
+          // 🔒 Desbloqueio estritamente sequencial dentro da MESMA semana:
+          //  - Para o primeiro dia da semana (1, 8, 15): nunca depende de dia anterior
+          //  - Para os demais dias: depende apenas do dia imediatamente anterior
+          const isFirstDayOfThisWeek = day.day === startOfWeek
+          const previousDayDone = completedDays.includes(day.day - 1)
+          const dayLocked = !isFirstDayOfThisWeek && !previousDayDone
 
           return (
             <div
@@ -157,20 +139,19 @@ export function WeekModule({
               className={`bg-dark-card border-2 rounded-xl overflow-hidden transition-all ${
                 isCompleted
                   ? "border-accent-green/50"
-                  : isLocked
+                  : dayLocked
                   ? "border-dark-border opacity-60"
                   : "border-dark-border"
               }`}
             >
-              {/* Cabeçalho do dia */}
               <button
-                onClick={() => !isLocked && setExpandedDay(isExpanded ? null : day.day)}
-                disabled={isLocked}
+                onClick={() => !dayLocked && setExpandedDay(isExpanded ? null : day.day)}
+                disabled={dayLocked}
                 className="w-full p-6 flex items-center gap-4 hover:bg-white/5 transition-colors disabled:cursor-not-allowed"
               >
                 {isCompleted ? (
                   <CheckCircle2 className="text-accent-green flex-shrink-0" size={28} />
-                ) : isLocked ? (
+                ) : dayLocked ? (
                   <Lock className="text-gray-500 flex-shrink-0" size={28} />
                 ) : (
                   <Circle className="text-gray-500 flex-shrink-0" size={28} />
@@ -182,18 +163,17 @@ export function WeekModule({
                       DIA {day.day} - {day.title}
                     </span>
                   </div>
-                  {isLocked && <p className="text-sm text-gray-500">Complete o dia anterior para desbloquear</p>}
+                  {dayLocked && <p className="text-sm text-gray-500">Complete o dia anterior para desbloquear</p>}
                 </div>
 
-                {!isLocked && (
+                {!dayLocked && (
                   <div className="flex-shrink-0">
                     {isExpanded ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
                   </div>
                 )}
               </button>
 
-              {/* Conteúdo expandido */}
-              {isExpanded && !isLocked && (
+              {isExpanded && !dayLocked && (
                 <div className="px-6 pb-6 space-y-4">
                   {day.exercises.map((exercise) => (
                     <div key={exercise.id} className="flex items-start gap-3 p-4 bg-dark-bg rounded-lg">
@@ -216,11 +196,10 @@ export function WeekModule({
                     </div>
                   ))}
 
-                  {/* Notas do dia */}
                   <div className="pt-4">
                     <label className="block text-sm font-semibold mb-2">📝 Notas do Dia:</label>
                     <textarea
-                      value={dayNotes[day.day] || day.notes || ""}
+                      value={dayNotes[day.day] ?? ""}
                       onChange={(e) => handleNoteChange(day.day, e.target.value)}
                       placeholder="Como foi o treino? Alguma observação?"
                       className="w-full bg-dark-bg border border-dark-border rounded-lg p-3 text-sm resize-none focus:outline-none focus:border-primary transition-colors"
@@ -228,7 +207,6 @@ export function WeekModule({
                     />
                   </div>
 
-                  {/* Botão marcar completo */}
                   {!isCompleted && (
                     <button
                       onClick={() => markDayComplete(day.day)}
