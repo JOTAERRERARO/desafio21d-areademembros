@@ -15,8 +15,8 @@ interface WeekModuleProps {
   days: WorkoutDay[]
   userId: string
   completedDays: number[]
-  isLocked: boolean // Add isLocked prop
-  isActive: boolean // Add isActive prop for animation
+  isLocked: boolean
+  isActive: boolean
 }
 
 export function WeekModule({
@@ -35,6 +35,7 @@ export function WeekModule({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
 
+  // Marca o dia como completo e atualiza o progresso
   const markDayComplete = async (day: number) => {
     if (!userId || isSubmitting) return
 
@@ -56,6 +57,7 @@ export function WeekModule({
     }))
   }
 
+  // 🔒 Se a semana está bloqueada, mostra tela de bloqueio
   if (isLocked) {
     return (
       <div className="space-y-6">
@@ -81,14 +83,19 @@ export function WeekModule({
     )
   }
 
+  // 🔥 Semana ativa (desbloqueada)
   return (
     <div className="space-y-6">
       <div
-        className={`bg-gradient-to-br from-dark-card via-dark-card to-primary/10 rounded-2xl p-8 border border-dark-border ${isActive ? "animate-pulse shadow-xl shadow-primary/20" : ""}`}
+        className={`bg-gradient-to-br from-dark-card via-dark-card to-primary/10 rounded-2xl p-8 border border-dark-border ${
+          isActive ? "animate-pulse shadow-xl shadow-primary/20" : ""
+        }`}
       >
         <div className="flex items-start gap-3 mb-4">
           <div
-            className={`w-12 h-12 rounded-full bg-primary flex items-center justify-center font-black text-xl ${isActive ? "animate-pulse" : ""}`}
+            className={`w-12 h-12 rounded-full bg-primary flex items-center justify-center font-black text-xl ${
+              isActive ? "animate-pulse" : ""
+            }`}
           >
             {weekNumber}
           </div>
@@ -101,19 +108,20 @@ export function WeekModule({
           </div>
         </div>
 
+        {/* Barra de progresso da semana */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-400">{totalDays} treinos</span>
             <span className="text-primary font-bold">
               {Math.round(
-                (completedDays.filter((d) => d >= (weekNumber - 1) * 7 + 1 && d <= weekNumber * 7).length / 7) * 100,
+                (completedDays.filter((d) => d >= (weekNumber - 1) * 7 + 1 && d <= weekNumber * 7).length / 7) * 100
               )}
               % completo
             </span>
           </div>
           <div className="w-full bg-dark-bg rounded-full h-3 overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-primary to-red-500 transition-all duration-500"
+              className="h-full bg-gradient-to-r from-primary to-accent-yellow transition-all duration-500"
               style={{
                 width: `${(completedDays.filter((d) => d >= (weekNumber - 1) * 7 + 1 && d <= weekNumber * 7).length / 7) * 100}%`,
               }}
@@ -122,17 +130,26 @@ export function WeekModule({
         </div>
       </div>
 
+      {/* Lista de dias */}
       <div className="space-y-4">
         {days.map((day) => {
           const isExpanded = expandedDay === day.day
           const isCompleted = completedDays.includes(day.day)
 
-          // Calcula se o dia anterior da MESMA semana foi concluído
-          const dayIndexInWeek = ((day.day - 1) % 7) + 1
+          // Calcula se o dia anterior está completo (para desbloquear o próximo)
+          const previousDayCompleted =
+            day.day === 1 ? true : completedDays.includes(day.day - 1)
+
+          // Calcula se a semana anterior está concluída
+          const previousWeekEnd = (weekNumber - 1) * 7
+          const previousWeekDays = completedDays.filter((d) => d <= previousWeekEnd).length
+          const previousWeekCompleted = previousWeekDays >= previousWeekEnd
+
+          // 🔒 Lógica de bloqueio correta
           const isLocked =
-            (weekNumber > 1 && completedDays.filter((d) => d >= (weekNumber - 1) * 7 + 1 && d <= weekNumber * 7 - 7).length < 7)
-              ? false // desbloqueia se todas as semanas anteriores completas
-              : dayIndexInWeek > 1 && !completedDays.includes(day.day - 1)
+            weekNumber > 1 && !previousWeekCompleted
+              ? true // semana anterior não concluída
+              : day.day > (weekNumber - 1) * 7 + 1 && !previousDayCompleted
 
           return (
             <div
@@ -141,10 +158,11 @@ export function WeekModule({
                 isCompleted
                   ? "border-accent-green/50"
                   : isLocked
-                    ? "border-dark-border opacity-60"
-                    : "border-dark-border"
+                  ? "border-dark-border opacity-60"
+                  : "border-dark-border"
               }`}
             >
+              {/* Cabeçalho do dia */}
               <button
                 onClick={() => !isLocked && setExpandedDay(isExpanded ? null : day.day)}
                 disabled={isLocked}
@@ -174,6 +192,7 @@ export function WeekModule({
                 )}
               </button>
 
+              {/* Conteúdo expandido */}
               {isExpanded && !isLocked && (
                 <div className="px-6 pb-6 space-y-4">
                   {day.exercises.map((exercise) => (
@@ -197,6 +216,7 @@ export function WeekModule({
                     </div>
                   ))}
 
+                  {/* Notas do dia */}
                   <div className="pt-4">
                     <label className="block text-sm font-semibold mb-2">📝 Notas do Dia:</label>
                     <textarea
@@ -208,6 +228,7 @@ export function WeekModule({
                     />
                   </div>
 
+                  {/* Botão marcar completo */}
                   {!isCompleted && (
                     <button
                       onClick={() => markDayComplete(day.day)}
