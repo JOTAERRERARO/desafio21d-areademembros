@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 
 interface VideoPlayerProps {
   workoutDay: WorkoutDay
+  userid?: string
   isCompleted: boolean
   nextDay: WorkoutDay | undefined
   completedDays: number[]
