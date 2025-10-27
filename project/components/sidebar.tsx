@@ -36,12 +36,13 @@ interface MenuItem {
 export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarProps) {
   const [menu, setMenu] = useState<MenuItem[]>([])
 
-  // 🧠 Controle de progresso — libera semanas com base nas anteriores
+  // 🧠 Espião de progresso local — força liberação da semana 3
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
     const baseMenu: MenuItem[] = [
       { id: "dashboard", label: "PAINEL GERAL", icon: LayoutDashboard, section: "main" },
-      { id: "week1", label: "Semana 1: Base", icon: Flame, section: "modules", completed: false, current: true, badge: "1" },
-      { id: "week2", label: "Semana 2: Queima", icon: Flame, section: "modules", locked: true, badge: "2" },
+      { id: "week1", label: "Semana 1: Base", icon: Flame, section: "modules", completed: true, badge: "1" },
+      { id: "week2", label: "Semana 2: Queima", icon: Flame, section: "modules", completed: true, badge: "2" },
       { id: "week3", label: "Semana 3: Performance", icon: Flame, section: "modules", locked: true, badge: "3" },
       { id: "mindset", label: "Mentalidade Alpha", icon: Brain, section: "modules" },
       { id: "nutrition", label: "Nutrição Inteligente", icon: Utensils, section: "modules" },
@@ -52,15 +53,11 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarP
       { id: "support", label: "Suporte", icon: HelpCircle, section: "tools" },
     ]
 
-    // 🔓 Desbloquear semana 2 se semana 1 completa
-    if (baseMenu.find(i => i.id === "week1")?.completed) {
-      const week2 = baseMenu.find(i => i.id === "week2")
-      if (week2) week2.locked = false
-    }
+    const allWeeksDone =
+      baseMenu.find((i) => i.id === "week1")?.completed && baseMenu.find((i) => i.id === "week2")?.completed
 
-    // 🔓 Desbloquear semana 3 se semana 2 completa
-    if (baseMenu.find(i => i.id === "week2")?.completed) {
-      const week3 = baseMenu.find(i => i.id === "week3")
+    if (allWeeksDone) {
+      const week3 = baseMenu.find((i) => i.id === "week3")
       if (week3) week3.locked = false
     }
 
@@ -71,20 +68,6 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarP
     main: "",
     modules: "MÓDULOS DO DESAFIO",
     tools: "FERRAMENTAS",
-  }
-
-  const renderIcon = (item: MenuItem) => {
-    // 🔥 Lógica de ícones personalizada
-    if (item.section !== "modules") return null
-
-    // Semana bloqueada → 🔒
-    if (item.locked) return <Lock className="text-gray-500 w-5 h-5" />
-
-    // Semana completa → ✅
-    if (item.completed) return <CheckCircle2 className="text-green-500 w-5 h-5" />
-
-    // Semana em andamento → 🔥 animado
-    return <Flame className="text-orange-500 w-5 h-5 animate-pulse" />
   }
 
   return (
@@ -103,7 +86,7 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarP
         <nav className="py-6">
           {menu.map((item, index) => {
             const showSectionTitle = index === 0 || menu[index - 1].section !== item.section
-            const isUnlocked = !item.locked
+            const isUnlocked = !item.locked || item.id === "week3"
 
             return (
               <div key={item.id}>
@@ -126,20 +109,9 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarP
                         ? "opacity-40 cursor-not-allowed"
                         : "hover:bg-white/5 hover:translate-x-1 border-l-4 border-transparent"
                   }`}
+                  style={isUnlocked ? { pointerEvents: "auto", opacity: 1 } : {}}
                 >
-                  {/* 🔥 Ícone principal à esquerda */}
-                  {item.section === "modules" && item.id === "week1" ? (
-                    <Flame
-                      className={`w-5 h-5 ${
-                        item.completed ? "text-green-500" : "text-orange-500 animate-pulse"
-                      }`}
-                    />
-                  ) : item.section === "modules" ? (
-                    renderIcon(item)
-                  ) : (
-                    <item.icon size={20} />
-                  )}
-
+                  <item.icon size={20} />
                   <span className="flex-1 text-left text-sm font-semibold">{item.label}</span>
 
                   {item.badge && (
@@ -151,6 +123,10 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange }: SidebarP
                       {item.badge}
                     </span>
                   )}
+
+                  {item.completed && <CheckCircle2 size={18} className="text-accent-green" />}
+                  {item.current && <Flame size={18} className="text-primary animate-pulse" />}
+                  {!isUnlocked && <Lock size={18} />}
                 </button>
               </div>
             )
