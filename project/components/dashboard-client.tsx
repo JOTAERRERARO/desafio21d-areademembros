@@ -110,6 +110,11 @@ export function DashboardClient({ user, completedDays }: DashboardClientProps) {
             setCurrentPage(page)
             setIsSidebarOpen(false)
           }}
+          progress={{
+            week1: userProgress.weeks[0],
+            week2: userProgress.weeks[1],
+            week3: userProgress.weeks[2],
+          }}
         />
 
         <main className="flex-1 lg:ml-64 p-4 md:p-6 max-w-7xl mx-auto w-full transition-all duration-300">
