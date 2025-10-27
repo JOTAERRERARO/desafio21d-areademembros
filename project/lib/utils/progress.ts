@@ -20,94 +20,46 @@ export interface UserProgress {
 }
 
 export function calculateUserProgress(completedDays: number[]): UserProgress {
+  // Define 3 semanas fixas
   const weeks: WeekProgress[] = [
-    {
-      weekNumber: 1,
-      isLocked: false,
-      isActive: false,
-      isCompleted: false,
-      completedDays: 0,
-      totalDays: 7,
-      progress: 0,
-    },
-    {
-      weekNumber: 2,
-      isLocked: true,
-      isActive: false,
-      isCompleted: false,
-      completedDays: 0,
-      totalDays: 7,
-      progress: 0,
-    },
-    {
-      weekNumber: 3,
-      isLocked: true,
-      isActive: false,
-      isCompleted: false,
-      completedDays: 0,
-      totalDays: 7,
-      progress: 0,
-    },
+    { weekNumber: 1, isLocked: false, isActive: false, isCompleted: false, completedDays: 0, totalDays: 7, progress: 0 },
+    { weekNumber: 2, isLocked: true, isActive: false, isCompleted: false, completedDays: 0, totalDays: 7, progress: 0 },
+    { weekNumber: 3, isLocked: true, isActive: false, isCompleted: false, completedDays: 0, totalDays: 7, progress: 0 },
   ]
 
-  // Contagem de dias completos
+  // Conta quantos dias completos por semana
   weeks[0].completedDays = completedDays.filter((d) => d >= 1 && d <= 7).length
   weeks[1].completedDays = completedDays.filter((d) => d >= 8 && d <= 14).length
   weeks[2].completedDays = completedDays.filter((d) => d >= 15 && d <= 21).length
 
-  // Progresso e status
+  // Calcula progresso e status de cada semana
   weeks.forEach((week) => {
     week.progress = (week.completedDays / week.totalDays) * 100
     week.isCompleted = week.completedDays === week.totalDays
   })
 
-  // 🔓 Lógica de desbloqueio forçada e à prova de erro (com espião)
+  // 🔐 Lógica de bloqueio progressiva entre semanas
   weeks[1].isLocked = !weeks[0].isCompleted
-  weeks[2].isLocked = !(weeks[0].isCompleted && weeks[1].isCompleted)
+  weeks[2].isLocked = !weeks[1].isCompleted
 
-  // 🧠 Espião de progresso: se a Semana 2 estiver concluída, libera e marca a 3 como desbloqueada
-  if (weeks[1].isCompleted) {
-    weeks[2].isLocked = false
-
-    // Se o usuário completou todos os 14 primeiros dias, ativa automaticamente a 3
-    if (completedDays.length >= 14) {
-      const missingDays = Array.from({ length: 7 }, (_, i) => 15 + i)
-      missingDays.forEach((day) => {
-        if (!completedDays.includes(day)) completedDays.push(day)
-      })
-      weeks[2].completedDays = 7
-      weeks[2].isCompleted = false // mantém como ativa
-      weeks[2].progress = 0
-    }
-  }
-
-  // Reforço absoluto (se 1 e 2 completas, desbloqueia totalmente a 3)
-  if (weeks[0].isCompleted && weeks[1].isCompleted) {
-    weeks[2].isLocked = false
-  }
-
-  // Define a semana ativa
+  // Define qual semana está ativa
   let activeWeek = 1
   for (let i = 0; i < weeks.length; i++) {
-    if (!weeks[i].isCompleted && !weeks[i].isLocked) {
-      activeWeek = weeks[i].weekNumber
-      weeks[i].isActive = true
+    const w = weeks[i]
+    if (!w.isLocked && !w.isCompleted) {
+      w.isActive = true
+      activeWeek = w.weekNumber
       break
     }
   }
 
-  // Se todas concluídas
+  // Caso todas estejam completas
   if (weeks.every((w) => w.isCompleted)) {
-    activeWeek = 3
     weeks[2].isActive = true
+    activeWeek = 3
   }
 
-  // Garante que nenhuma ativa esteja bloqueada
-  weeks.forEach((w) => {
-    if (w.isLocked && w.isActive) w.isActive = false
-  })
-
-  // Próximo dia
+  // Próximo dia não concluído
   let nextUncompletedDay: number | null = null
   for (let day = 1; day <= 21; day++) {
     if (!completedDays.includes(day)) {
@@ -116,7 +68,7 @@ export function calculateUserProgress(completedDays: number[]): UserProgress {
     }
   }
 
-  const currentDay = nextUncompletedDay || Math.min(completedDays.length + 1, 21)
+  const currentDay = nextUncompletedDay || 21
   const totalProgress = Math.round((completedDays.length / 21) * 100)
 
   return { currentDay, activeWeek, nextUncompletedDay, weeks, totalProgress }
