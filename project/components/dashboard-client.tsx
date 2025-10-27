@@ -25,12 +25,17 @@ export function DashboardClient({ user, completedDays }: DashboardClientProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState("dashboard")
 
-  const userProgress = calculateUserProgress(completedDays)
+  // 🔒 Garante que só existam dias válidos (1–21)
+  const safeCompletedDays = Array.isArray(completedDays)
+    ? completedDays.filter((d) => !isNaN(d) && d >= 1 && d <= 21)
+    : []
+
+  const userProgress = calculateUserProgress(safeCompletedDays)
 
   const renderContent = () => {
     switch (currentPage) {
       case "dashboard":
-        return <Dashboard user={user} completedDays={completedDays} />
+        return <Dashboard user={user} completedDays={safeCompletedDays} />
       case "week1":
         return (
           <WeekModule
@@ -40,7 +45,7 @@ export function DashboardClient({ user, completedDays }: DashboardClientProps) {
             totalDays={7}
             days={week1Days}
             userId={user?.id || ""}
-            completedDays={completedDays}
+            completedDays={safeCompletedDays}
             isLocked={userProgress.weeks[0].isLocked}
             isActive={userProgress.weeks[0].isActive}
           />
@@ -54,7 +59,7 @@ export function DashboardClient({ user, completedDays }: DashboardClientProps) {
             totalDays={7}
             days={week2Days}
             userId={user?.id || ""}
-            completedDays={completedDays}
+            completedDays={safeCompletedDays}
             isLocked={userProgress.weeks[1].isLocked}
             isActive={userProgress.weeks[1].isActive}
           />
@@ -68,7 +73,7 @@ export function DashboardClient({ user, completedDays }: DashboardClientProps) {
             totalDays={7}
             days={week3Days}
             userId={user?.id || ""}
-            completedDays={completedDays}
+            completedDays={safeCompletedDays}
             isLocked={userProgress.weeks[2].isLocked}
             isActive={userProgress.weeks[2].isActive}
           />
@@ -80,7 +85,7 @@ export function DashboardClient({ user, completedDays }: DashboardClientProps) {
       case "bonuses":
         return <Bonuses />
       case "progress":
-        return <ProgressPage user={user} completedDays={completedDays} />
+        return <ProgressPage user={user} completedDays={safeCompletedDays} />
       case "journal":
         return <JournalPage />
       case "community":
@@ -88,13 +93,13 @@ export function DashboardClient({ user, completedDays }: DashboardClientProps) {
       case "support":
         return <SupportPage />
       default:
-        return <Dashboard user={user} completedDays={completedDays} />
+        return <Dashboard user={user} completedDays={safeCompletedDays} />
     }
   }
 
   return (
     <div className="min-h-screen bg-dark-bg">
-      <Header onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)} user={user} completedDays={completedDays} />
+      <Header onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)} user={user} completedDays={safeCompletedDays} />
 
       <div className="flex pt-[70px]">
         <Sidebar
