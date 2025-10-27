@@ -43,8 +43,14 @@ export default async function DashboardPage() {
       console.error("[v0] Error fetching progress data:", progressError.message)
     }
 
-    const completedDays = progressData?.map((p) => p.day_number) || []
-
+    const completedDays = Array.from(
+      new Set(
+        (progressData || [])
+          .map((p) => Number(p.day_number))
+          .filter((n) => !isNaN(n) && n >= 1 && n <= 21)
+      )
+    )
+    
     console.log("[v0] Dashboard: Rendering with", completedDays.length, "completed days")
 
     return <DashboardClient user={userData} completedDays={completedDays} />
