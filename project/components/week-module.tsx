@@ -1,7 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { CheckCircle2, Circle, Lock, ChevronDown, ChevronUp, Play, Flame } from "lucide-react"
+import {
+  CheckCircle2,
+  Circle,
+  Lock,
+  ChevronDown,
+  ChevronUp,
+  Play,
+  Flame
+} from "lucide-react"
 import { useRouter } from "next/navigation"
 import { completeDayAction } from "@/lib/actions/progress"
 import type { WorkoutDay } from "@/lib/types/database"
@@ -48,7 +56,7 @@ export function WeekModule({
     setDayNotes((prev) => ({ ...prev, [day]: note }))
   }
 
-  // 🔒 Se a semana está bloqueada, mostra cartão de bloqueio
+  // 🔒 Semana bloqueada
   if (isLocked) {
     return (
       <div className="space-y-6">
@@ -57,11 +65,15 @@ export function WeekModule({
             <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center font-black text-xl">
               {weekNumber}
             </div>
-            <div className="flex-1">
-              <h1 className="text-2xl font-black mb-1 text-gray-400">
-                SEMANA {weekNumber}: {title}
-              </h1>
-              <p className="text-gray-500">{description}</p>
+            <div className="flex-1 flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-black mb-1 text-gray-400">
+                  SEMANA {weekNumber}: {title}
+                </h1>
+                <p className="text-gray-500">{description}</p>
+              </div>
+              {/* 🔒 Cadeado à direita */}
+              <Lock className="text-gray-500" size={32} />
             </div>
           </div>
           <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 text-center">
@@ -74,39 +86,51 @@ export function WeekModule({
     )
   }
 
-  // Helpers de semana
-  const startOfWeek = (weekNumber - 1) * 7 + 1   // 1, 8, 15
-  const endOfWeek   = weekNumber * 7             // 7, 14, 21
-
+  // 🔢 Cálculo da semana
+  const startOfWeek = (weekNumber - 1) * 7 + 1
+  const endOfWeek = weekNumber * 7
   const completedInThisWeek = completedDays.filter((d) => d >= startOfWeek && d <= endOfWeek).length
   const weekProgressPct = Math.round((completedInThisWeek / 7) * 100)
+  const isWeekCompleted = completedInThisWeek === 7
+
+  // 🔥 Ícone da direita da semana (🔥, ✅, 🔒)
+  const renderWeekIcon = () => {
+    if (isWeekCompleted) return <CheckCircle2 className="text-accent-green animate-pulse" size={32} />
+    if (isActive) return <Flame className="text-accent-yellow animate-pulse" size={32} />
+    return <Lock className="text-gray-600" size={32} />
+  }
 
   return (
     <div className="space-y-6">
+      {/* Header da Semana */}
       <div
         className={`bg-gradient-to-br from-dark-card via-dark-card to-primary/10 rounded-2xl p-8 border border-dark-border ${
           isActive ? "animate-pulse shadow-xl shadow-primary/20" : ""
         }`}
       >
-        <div className="flex items-start gap-3 mb-4">
-          <div
-            className={`w-12 h-12 rounded-full bg-primary flex items-center justify-center font-black text-xl ${
-              isActive ? "animate-pulse" : ""
-            }`}
-          >
-            {weekNumber}
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-3">
+            <div
+              className={`w-12 h-12 rounded-full bg-primary flex items-center justify-center font-black text-xl ${
+                isActive ? "animate-pulse" : ""
+              }`}
+            >
+              {weekNumber}
+            </div>
+            <div>
+              <h1 className="text-2xl font-black mb-1 flex items-center gap-2">
+                SEMANA {weekNumber}: {title}
+              </h1>
+              <p className="text-gray-400">{description}</p>
+            </div>
           </div>
-          <div className="flex-1">
-            <h1 className="text-2xl font-black mb-1 flex items-center gap-2">
-              SEMANA {weekNumber}: {title}
-              {isActive && <Flame className="text-accent-yellow animate-pulse" size={24} />}
-            </h1>
-            <p className="text-gray-400">{description}</p>
-          </div>
+
+          {/* 🔥/✅/🔒 Ícone dinâmico à direita */}
+          <div className="flex items-center">{renderWeekIcon()}</div>
         </div>
 
-        {/* Progresso da semana */}
-        <div className="space-y-2">
+        {/* Barra de progresso */}
+        <div className="space-y-2 mt-4">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-400">{totalDays} treinos</span>
             <span className="text-primary font-bold">{weekProgressPct}% completo</span>
@@ -125,10 +149,6 @@ export function WeekModule({
         {days.map((day) => {
           const isExpanded = expandedDay === day.day
           const isCompleted = completedDays.includes(day.day)
-
-          // 🔒 Desbloqueio estritamente sequencial dentro da MESMA semana:
-          //  - Para o primeiro dia da semana (1, 8, 15): nunca depende de dia anterior
-          //  - Para os demais dias: depende apenas do dia imediatamente anterior
           const isFirstDayOfThisWeek = day.day === startOfWeek
           const previousDayDone = completedDays.includes(day.day - 1)
           const dayLocked = !isFirstDayOfThisWeek && !previousDayDone
@@ -154,7 +174,7 @@ export function WeekModule({
                 ) : dayLocked ? (
                   <Lock className="text-gray-500 flex-shrink-0" size={28} />
                 ) : (
-                  <Circle className="text-gray-500 flex-shrink-0" size={28} />
+                  <Circle className="text-gray-400 flex-shrink-0" size={28} />
                 )}
 
                 <div className="flex-1 text-left">
