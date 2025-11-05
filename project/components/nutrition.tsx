@@ -1,6 +1,6 @@
 "use client"
 
-import { Utensils, Download, ChefHat, Calculator } from "lucide-react"
+import { Utensils, Download, ChefHat, Calculator, ArrowLeft } from "lucide-react"
 import { useState } from "react"
 
 const recipes = [
@@ -10,6 +10,7 @@ const recipes = [
     calories: 300,
     protein: 25,
     image: "https://images.pexels.com/photos/616833/pexels-photo-616833.jpeg",
+    pdfUrl: "https://drive.google.com/file/d/109wnMJkPJHfyX1Viorha_I9RA_gM6l_y/preview",
   },
   {
     id: 2,
@@ -17,6 +18,7 @@ const recipes = [
     calories: 280,
     protein: 30,
     image: "https://images.pexels.com/photos/566566/pexels-photo-566566.jpeg",
+    pdfUrl: "https://drive.google.com/file/d/1B9GRu5el11dvKQuEymOk_zH5hWkzwlKt/preview",
   },
   {
     id: 3,
@@ -24,6 +26,7 @@ const recipes = [
     calories: 410,
     protein: 28,
     image: "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg",
+    pdfUrl: "https://drive.google.com/file/d/1lT4GEW5jmanFDP33QivlfdvPSTZWro43/preview",
   },
 ]
 
@@ -31,18 +34,44 @@ export function Nutrition() {
   const [weight, setWeight] = useState("")
   const [height, setHeight] = useState("")
   const [showResults, setShowResults] = useState(false)
+  const [activePdf, setActivePdf] = useState<string | null>(null)
 
   const calculateCalories = () => {
-    if (weight && height) {
-      setShowResults(true)
-    }
+    if (weight && height) setShowResults(true)
   }
 
   const recommendedCalories = weight && height ? Math.round(Number(weight) * 30) : 0
   const protein = weight ? Math.round(Number(weight) * 2) : 0
 
+  // PDF Guia Alimentar 21D (visualização interna)
+  const guiaPdfUrl = "https://drive.google.com/file/d/1N7FrlAC7yFVUPOJN-tf_bkMdGEfTgyMm/preview"
+
+  // Se estiver visualizando um PDF, mostra o visualizador
+  if (activePdf) {
+    return (
+      <div className="min-h-screen bg-dark-bg p-4 flex flex-col">
+        <button
+          onClick={() => setActivePdf(null)}
+          className="flex items-center gap-2 text-primary hover:text-primary-light font-semibold mb-4"
+        >
+          <ArrowLeft size={20} /> Voltar
+        </button>
+
+        <div className="flex-1 rounded-xl overflow-hidden border border-dark-border">
+          <iframe
+            src={activePdf}
+            className="w-full h-[85vh]"
+            allow="autoplay"
+          ></iframe>
+        </div>
+      </div>
+    )
+  }
+
+  // Caso padrão (sem PDF aberto)
   return (
     <div className="space-y-6">
+      {/* Cabeçalho */}
       <div className="bg-gradient-to-br from-dark-card via-dark-card to-accent-green/10 rounded-2xl p-8 border border-dark-border">
         <div className="flex items-start gap-3 mb-4">
           <Utensils className="text-accent-green" size={40} />
@@ -53,12 +82,16 @@ export function Nutrition() {
         </div>
       </div>
 
+      {/* GUIA ALIMENTAR */}
       <div className="bg-dark-card border border-dark-border rounded-xl p-6">
         <div className="flex items-center gap-3 mb-4">
           <Download className="text-accent-yellow" size={24} />
           <h2 className="text-xl font-bold">🥗 Guia Alimentar 21D</h2>
         </div>
-        <p className="text-gray-400 mb-4">Plano alimentar flexível com foco em baixa inflamação e alto desempenho</p>
+        <p className="text-gray-400 mb-4">
+          Plano alimentar flexível com foco em baixa inflamação e alto desempenho
+        </p>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="p-4 bg-dark-bg rounded-lg">
             <h3 className="font-bold mb-2">🌅 Acordou</h3>
@@ -73,12 +106,17 @@ export function Nutrition() {
             <p className="text-sm text-gray-400">Desincha e recupera</p>
           </div>
         </div>
-        <button className="flex items-center gap-2 bg-accent-green hover:bg-accent-green/90 text-black font-bold py-3 px-6 rounded-lg transition-all hover:scale-105">
+
+        <button
+          onClick={() => setActivePdf(guiaPdfUrl)}
+          className="flex items-center gap-2 bg-accent-green hover:bg-accent-green/90 text-black font-bold py-3 px-6 rounded-lg transition-all hover:scale-105"
+        >
           <Download size={20} />
-          BAIXAR GUIA ALIMENTAR
+          VISUALIZAR GUIA ALIMENTAR
         </button>
       </div>
 
+      {/* RECEITAS RÁPIDAS */}
       <div className="bg-dark-card border border-dark-border rounded-xl p-6">
         <div className="flex items-center gap-3 mb-4">
           <ChefHat className="text-primary" size={24} />
@@ -104,7 +142,10 @@ export function Nutrition() {
                   <span>{recipe.calories} kcal</span>
                   <span>{recipe.protein}g proteína</span>
                 </div>
-                <button className="text-sm text-secondary hover:text-secondary-light font-semibold">
+                <button
+                  onClick={() => setActivePdf(recipe.pdfUrl)}
+                  className="text-sm text-secondary hover:text-secondary-light font-semibold"
+                >
                   Ver Receita Completa →
                 </button>
               </div>
@@ -113,6 +154,7 @@ export function Nutrition() {
         </div>
       </div>
 
+      {/* CALCULADORA DE CALORIAS */}
       <div className="bg-dark-card border border-dark-border rounded-xl p-6">
         <div className="flex items-center gap-3 mb-4">
           <Calculator className="text-secondary" size={24} />
