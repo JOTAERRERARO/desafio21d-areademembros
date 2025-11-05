@@ -11,32 +11,32 @@ const quotes = [
   "Resultados acontecem com o tempo, não da noite para o dia.",
 ]
 
-// 🎥 Vídeo principal — sobre Mentalidade Alpha
-const mainVideoId = "14TEZ4K0D1Y" // "Como Desenvolver Mentalidade de Sucesso – Rafael Franco" (embed liberado)
+// 🎥 Vídeo principal — Mentalidade Alpha (embed liberado)
+const mainVideoId = "52DghK2Zn1g" // Mentalidade Alpha (português, disponível)
 
-// 🎯 21 vídeos motivacionais (todos testados e com embed liberado)
+// 🎯 21 vídeos motivacionais (todos testados e com incorporação liberada)
 const motivationalVideos = [
-  { id: 1, title: "Dia 1: Mentalidade de Sucesso", youtubeId: "8YwC3G7vk5Y" },
-  { id: 2, title: "Dia 2: O Poder da Disciplina", youtubeId: "gMcOsoZ6yQg" },
-  { id: 3, title: "Dia 3: Mentalidade Forte e Inabalável", youtubeId: "VnL0t8FbI0o" },
-  { id: 4, title: "Dia 4: Motivação e Foco Total", youtubeId: "I8ZVg40T7Ug" },
-  { id: 5, title: "Dia 5: Supere Seus Limites", youtubeId: "lxF8E4M2BdA" },
-  { id: 6, title: "Dia 6: Mentalidade de Ferro", youtubeId: "l1RWq5hEr0s" },
-  { id: 7, title: "Dia 7: Pare de Desistir", youtubeId: "lIoeY3K7gD4" },
-  { id: 8, title: "Dia 8: Foco Absoluto", youtubeId: "ufbUXzKpD3c" },
-  { id: 9, title: "Dia 9: O Poder da Persistência", youtubeId: "mE1eI4X1q_A" },
-  { id: 10, title: "Dia 10: Domine Sua Mente", youtubeId: "RZJSL1PzXrw" },
-  { id: 11, title: "Dia 11: Continue Mesmo Sem Vontade", youtubeId: "3MgzNbxw2S4" },
-  { id: 12, title: "Dia 12: A Força da Constância", youtubeId: "XgeP1nBR7No" },
-  { id: 13, title: "Dia 13: Não Espere Motivação", youtubeId: "ONo2zCGb1sA" },
-  { id: 14, title: "Dia 14: Você é Capaz", youtubeId: "x8Bpk93-4lE" },
-  { id: 15, title: "Dia 15: Pense Como Um Alfa", youtubeId: "Maf3Qx6Yq-M" },
-  { id: 16, title: "Dia 16: Mente de Campeão", youtubeId: "bA4aEJUZGyg" },
-  { id: 17, title: "Dia 17: Coragem e Persistência", youtubeId: "Tcof3RkQ9PM" },
-  { id: 18, title: "Dia 18: Pare de Reclamar", youtubeId: "vdxLbo6nF6I" },
-  { id: 19, title: "Dia 19: O Jogo é Mental", youtubeId: "lJpjC0Zm5Wc" },
-  { id: 20, title: "Dia 20: Você Contra Você", youtubeId: "Q6Nn7P1KZt0" },
-  { id: 21, title: "Dia 21: A Vitória é Mental", youtubeId: "YtYmS9rJQkg" },
+  { id: 1, title: "Dia 1: DOMINE 2025 – Melhor Motivação Para o Ano Novo", youtubeId: "EdaoBfHcCRw" },
+  { id: 2, title: "Dia 2: SUA MENTALIDADE MERECE UMA RENOVAÇÃO", youtubeId: "580YAt-SHcU" },
+  { id: 3, title: "Dia 3: COMO MUDAR DE VIDA EM 2025", youtubeId: "xJgEJDxuqLY" },
+  { id: 4, title: "Dia 4: 20 MINUTOS QUE VÃO MUDAR SUA VIDA", youtubeId: "8_GWRvi1WY4" },
+  { id: 5, title: "Dia 5: NÃO SEJA UMA PESSOA FRACA EM 2024", youtubeId: "onodsXssD7E" },
+  { id: 6, title: "Dia 6: 8 MINUTOS MOTIVACIONAIS QUE VÃO TE DEIXAR MAIS FORTE", youtubeId: "LX6jpDqfjuo" },
+  { id: 7, title: "Dia 7: 5 MINUTOS MOTIVACIONAIS QUE VÃO MUDAR SUA VIDA", youtubeId: "4gRHJ958ZNc" },
+  { id: 8, title: "Dia 8: SEJA A EXCEÇÃO, NÃO A REGRA!", youtubeId: "6x9dCVsyMEw" },
+  { id: 9, title: "Dia 9: SEM DESCULPAS EM 2024", youtubeId: "uDLH3Mpc0wM" },
+  { id: 10, title: "Dia 10: VOCÊ NÃO CHEGOU EM 2024 PRA DESISTIR AGORA", youtubeId: "CYEBTEiGld8" },
+  { id: 11, title: "Dia 11: 3 HORAS DE MOTIVAÇÃO PURA", youtubeId: "5N9L5oB5IDc" },
+  { id: 12, title: "Dia 12: BLOOD, SWEAT AND TEARS – Motivacional em Português", youtubeId: "5qPfDqadM4c" },
+  { id: 13, title: "Dia 13: NUNCA DESISTA – O Vídeo Motivacional Mais Forte da Manhã", youtubeId: "xsE964xxuxI" },
+  { id: 14, title: "Dia 14: Trabalho em Equipe – Motivacional 2024", youtubeId: "hEtOEyRs6dg" },
+  { id: 15, title: "Dia 15: PEGA ESSA VISÃO DE VIDA – Nando Pinheiro", youtubeId: "hI44KX206YQ" },
+  { id: 16, title: "Dia 16: E SE NÃO ESTIVER TUDO BEM?", youtubeId: "2c0y5H0FG6I" },
+  { id: 17, title: "Dia 17: O SEGREDO DO HOMEM ALFA", youtubeId: "uATb_3ESOWs" },
+  { id: 18, title: "Dia 18: SEJA ESSE TIPO DE CARA E DOMINE TUDO", youtubeId: "0ErCM0YGm4Q" },
+  { id: 19, title: "Dia 19: 30 MINUTOS QUE VALEM POR 30 ANOS – Leandro Karnal", youtubeId: "g4QIw0S5uHo" },
+  { id: 20, title: "Dia 20: 5 MINUTOS QUE VALERÃO POR 50 ANOS", youtubeId: "R6mzovqSCRw" },
+  { id: 21, title: "Dia 21: FAÇA DE 2024 O SEU ANO [MOTIVACIONAL]", youtubeId: "8zpRyHd6l7A" },
 ]
 
 export function Mindset() {
@@ -71,7 +71,8 @@ export function Mindset() {
             height="100%"
             src={`https://www.youtube.com/embed/${mainVideoId}`}
             title="Mentalidade Alpha"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
           ></iframe>
         </div>
@@ -118,7 +119,8 @@ export function Mindset() {
                       height="100%"
                       src={`https://www.youtube.com/embed/${video.youtubeId}`}
                       title={video.title}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                       allowFullScreen
                     ></iframe>
                   </div>
