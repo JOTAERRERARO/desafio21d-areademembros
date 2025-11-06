@@ -20,8 +20,6 @@ interface SidebarProps {
   onClose: () => void
   currentPage: string
   onPageChange: (page: string) => void
-
-  // 👇 adiciona essas novas props
   progress?: {
     week1: { isLocked: boolean; isCompleted: boolean; isActive: boolean }
     week2: { isLocked: boolean; isCompleted: boolean; isActive: boolean }
@@ -98,11 +96,14 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange, progress }
       {isOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onClose} />}
 
       <aside
-        className={`fixed left-0 top-[70px] bottom-0 w-64 bg-dark-card border-r border-dark-border z-50 transition-transform duration-300 backdrop-blur-md ${
+        className={`fixed left-0 top-[70px] bottom-0 w-64 bg-[#0E0E0E] border-r border-dark-border z-50 transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0 overflow-y-auto scrollbar-hide`}
       >
-        <button onClick={onClose} className="lg:hidden absolute top-4 right-4 p-2 hover:bg-white/5 rounded-lg">
+        <button
+          onClick={onClose}
+          className="lg:hidden absolute top-4 right-4 p-2 hover:bg-white/5 rounded-lg"
+        >
           <X size={20} />
         </button>
 
@@ -135,8 +136,6 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange, progress }
                 >
                   <item.icon size={20} />
                   <span className="flex-1 text-left text-sm font-semibold">{item.label}</span>
-
-                  {/* 🔥/✅/🔒 Ícones dinâmicos */}
                   {item.completed && <CheckCircle2 size={18} className="text-accent-green" />}
                   {item.current && <Flame size={18} className="text-primary animate-pulse" />}
                   {item.locked && <Lock size={18} className="text-gray-500" />}
