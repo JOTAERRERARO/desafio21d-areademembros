@@ -98,7 +98,7 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange, progress }
       {isOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onClose} />}
 
       <aside
-        className={`fixed left-0 top-[70px] bottom-0 w-64 bg-dark-card lg:bg-dark-card/100 bg-dark-card/95 border-r border-dark-border z-50 transition-transform duration-300 backdrop-blur-md ${
+        className={`fixed left-0 top-[70px] bottom-0 w-64 bg-dark-card border-r border-dark-border z-50 transition-transform duration-300 backdrop-blur-md ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0 overflow-y-auto scrollbar-hide`}
       >
