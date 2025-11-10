@@ -3,25 +3,23 @@
 import { Calendar, Flame, Play, Target } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import type { User } from "@/lib/types/database"
 import { calculateUserProgress, findNextUncompletedWorkout } from "@/lib/utils/progress"
 
 interface DashboardProps {
-  user: User | null
   completedDays: number[]
+  unlockedWeeks?: number[]
 }
 
-export function Dashboard({ user, completedDays }: DashboardProps) {
+export function Dashboard({ completedDays, unlockedWeeks = [1] }: DashboardProps) {
   const router = useRouter()
   const [showToast, setShowToast] = useState(false)
 
-  const userProgress = calculateUserProgress(completedDays)
+  const userProgress = calculateUserProgress(completedDays, unlockedWeeks)
 
   const handleTodayWorkout = () => {
     const nextWorkoutUrl = findNextUncompletedWorkout(completedDays)
 
     if (nextWorkoutUrl === "/dashboard") {
-      // All workouts completed
       setShowToast(true)
       setTimeout(() => setShowToast(false), 3000)
       return
@@ -40,14 +38,14 @@ export function Dashboard({ user, completedDays }: DashboardProps) {
     },
     {
       icon: Flame,
-      value: user?.streak || 0,
+      value: Math.min(completedDays.length, 21),
       label: "Dias Seguidos",
       color: "text-accent-yellow",
       bgGradient: "from-accent-yellow/20 to-accent-yellow/5",
     },
     {
       icon: Play,
-      value: user?.videos_watched || 0,
+      value: completedDays.length || 0,
       label: "Vídeos",
       color: "text-secondary",
       bgGradient: "from-secondary/20 to-secondary/5",
@@ -74,7 +72,7 @@ export function Dashboard({ user, completedDays }: DashboardProps) {
         <div className="relative z-10">
           <h1 className="text-2xl md:text-3xl font-black mb-2 flex items-center gap-2 text-white">
             <Flame size={32} className="animate-pulse" />
-            BEM-VINDO DE VOLTA, {user?.name.toUpperCase() || "MEMBRO"}!
+            BEM-VINDO DE VOLTA!
           </h1>
           <p className="text-base md:text-lg text-white/90 mb-1">
             Você está no <span className="font-bold">DIA {userProgress.currentDay}</span> de 21

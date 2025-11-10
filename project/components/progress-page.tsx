@@ -1,14 +1,12 @@
 "use client"
 
 import { Calendar, TrendingUp, Award, Target, Flame, CheckCircle2 } from "lucide-react"
-import type { User } from "@/lib/types/database"
 
 interface ProgressPageProps {
-  user: User | null
   completedDays: number[]
 }
 
-export function ProgressPage({ user, completedDays }: ProgressPageProps) {
+export function ProgressPage({ completedDays }: ProgressPageProps) {
   const totalDays = 21
   const completedCount = completedDays.length
   const progressPercentage = (completedCount / totalDays) * 100
@@ -54,7 +52,7 @@ export function ProgressPage({ user, completedDays }: ProgressPageProps) {
       icon: TrendingUp,
       title: "Sequência de Fogo",
       description: "7 dias consecutivos",
-      unlocked: (user?.streak || 0) >= 7,
+      unlocked: completedCount >= 7,
     },
   ]
 
@@ -76,7 +74,7 @@ export function ProgressPage({ user, completedDays }: ProgressPageProps) {
         </div>
         <div className="bg-dark-card border border-dark-border rounded-xl p-6 hover:scale-105 transition-transform">
           <Flame className="text-accent-yellow mb-3" size={28} />
-          <div className="text-4xl font-black mb-1">{user?.streak || 0}</div>
+          <div className="text-4xl font-black mb-1">{completedCount}</div>
           <div className="text-sm text-gray-400">Dias Seguidos</div>
         </div>
         <div className="bg-dark-card border border-dark-border rounded-xl p-6 hover:scale-105 transition-transform">
@@ -86,7 +84,7 @@ export function ProgressPage({ user, completedDays }: ProgressPageProps) {
         </div>
         <div className="bg-dark-card border border-dark-border rounded-xl p-6 hover:scale-105 transition-transform">
           <Award className="text-secondary mb-3" size={28} />
-          <div className="text-4xl font-black mb-1">{user?.videos_watched || 0}</div>
+          <div className="text-4xl font-black mb-1">{completedCount}</div>
           <div className="text-sm text-gray-400">Vídeos Assistidos</div>
         </div>
       </div>

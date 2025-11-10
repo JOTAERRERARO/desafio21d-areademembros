@@ -1,24 +1,17 @@
 "use client"
 
-import { Menu, LogOut } from "lucide-react"
+import { Menu } from "lucide-react"
 import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
-import type { User } from "@/lib/types/database"
 
 interface HeaderProps {
   onMenuToggle: () => void
-  user: User | null
   completedDays: number[]
 }
 
-export function Header({ onMenuToggle, user, completedDays }: HeaderProps) {
-  const [showDropdown, setShowDropdown] = useState(false)
+export function Header({ onMenuToggle, completedDays }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false)
-  const router = useRouter()
-  const supabase = createClient()
 
-  const progress = user ? (completedDays.length / 21) * 100 : 0
+  const progress = (completedDays.length / 21) * 100
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,12 +20,6 @@ export function Header({ onMenuToggle, user, completedDays }: HeaderProps) {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push("/login")
-    router.refresh()
-  }
 
   return (
     <header
@@ -57,34 +44,6 @@ export function Header({ onMenuToggle, user, completedDays }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="relative">
-          <button
-            onClick={() => setShowDropdown(!showDropdown)}
-            className="flex items-center gap-2 hover:bg-white/5 rounded-lg p-2 transition-all active:scale-95"
-          >
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent-yellow flex items-center justify-center font-bold shadow-lg">
-              {user?.name.charAt(0) || "U"}
-            </div>
-          </button>
-
-          {showDropdown && (
-            <div className="absolute right-0 mt-2 w-48 bg-dark-card border border-dark-border rounded-lg shadow-xl py-2 animate-slide-up">
-              <div className="px-4 py-2 border-b border-dark-border">
-                <p className="font-semibold text-[#e0e0e0]">{user?.name || "Usuário"}</p>
-                <p className="text-xs text-gray-400">{user?.email}</p>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="w-full px-4 py-2 text-left hover:bg-red-500/10 text-red-400 flex items-center gap-2 transition-colors"
-              >
-                <LogOut size={16} />
-                Sair
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Logo placeholder - replace with actual logo */}
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent-yellow flex items-center justify-center font-black text-sm shadow-lg">
           21D
         </div>

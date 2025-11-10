@@ -1,72 +1,72 @@
-import { redirect } from "next/navigation"
-import { createServerSupabaseClient } from "@/lib/supabase/server"
+"use client"
+
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { VideoPlayer } from "@/components/video-player"
+import { useLocalProgress } from "@/lib/hooks/use-local-progress"
 import { week1Days, week2Days, week3Days } from "@/lib/data/workout-data"
 
-export default async function VideoPage({ params }: { params: Promise<{ id: string }> }) {
-  try {
-    const { id } = await params
-    const supabase = await createServerSupabaseClient()
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
+export default function VideoPage({ params }: { params: Promise<{ id: string }> }) {
+  const [id, setId] = useState<string>("")
+  const [dayNumber, setDayNumber] = useState(0)
+  const [loaded, setLoaded] = useState(false)
 
-    if (authError || !user) {
-      console.error("[v0] Auth error in video page:", authError)
-      redirect("/login")
+  const { completedDays, unlockedWeeks, isLoaded } = useLocalProgress()
+  const router = useRouter()
+
+  useEffect(() => {
+    const handleInit = async () => {
+      const { id: paramId } = await params
+      setId(paramId)
+
+      const num = Number.parseInt(paramId)
+      if (isNaN(num) || num < 1 || num > 21) {
+        router.push("/dashboard")
+        return
+      }
+
+      setDayNumber(num)
+      setLoaded(true)
     }
 
-    const dayNumber = Number.parseInt(id)
+    handleInit()
+  }, [params, router])
 
-    if (isNaN(dayNumber) || dayNumber < 1 || dayNumber > 21) {
-      redirect("/dashboard")
-    }
-
-    // Get user progress
-    const { data: progressData, error: progressError } = await supabase
-      .from("user_progress")
-      .select("day_number")
-      .eq("user_id", user.id)
-      .order("day_number", { ascending: true })
-
-    if (progressError) {
-      console.error("[v0] Error fetching progress:", progressError)
-    }
-
-    const completedDays = progressData?.map((p) => p.day_number) || []
-
-    // Find the workout day
-    const allDays = [...week1Days, ...week2Days, ...week3Days]
-    const workoutDay = allDays.find((d) => d.day === dayNumber)
-
-    if (!workoutDay) {
-      redirect("/dashboard")
-    }
-
-    // Check if day is locked
-    const isLocked = dayNumber > 1 && !completedDays.includes(dayNumber - 1)
-
-    if (isLocked) {
-      redirect("/dashboard")
-    }
-
-    const isCompleted = completedDays.includes(dayNumber)
-
-    // Find next day
-    const nextDay = allDays.find((d) => d.day === dayNumber + 1)
-
+  if (!loaded || !isLoaded) {
     return (
-      <VideoPlayer
-        workoutDay={workoutDay}
-        userId={user.id}
-        isCompleted={isCompleted}
-        nextDay={nextDay}
-        completedDays={completedDays}
-      />
+      <div className="min-h-screen bg-dark-bg flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-400">Carregando treino...</p>
+        </div>
+      </div>
     )
-  } catch (error) {
-    console.error("[v0] Unexpected error in video page:", error)
-    redirect("/login")
   }
+
+  const allDays = [...week1Days, ...week2Days, ...week3Days]
+  const workoutDay = allDays.find((d) => d.day === dayNumber)
+
+  if (!workoutDay) {
+    router.push("/dashboard")
+    return null
+  }
+
+  const weekNumber = Math.ceil(dayNumber / 7)
+  const isWeekUnlocked = unlockedWeeks.includes(weekNumber)
+  const isDayCompleted = completedDays.includes(dayNumber - 1)
+  const isFirstDayOfWeek = dayNumber % 7 === 1
+
+  const isLocked = !isWeekUnlocked || (dayNumber > 1 && !isFirstDayOfWeek && !completedDays.includes(dayNumber - 1))
+
+  if (isLocked) {
+    router.push("/dashboard")
+    return null
+  }
+
+  const isCompleted = completedDays.includes(dayNumber)
+  const nextDay = allDays.find((d) => d.day === dayNumber + 1)
+
+  return (
+    <VideoPlayer workoutDay={workoutDay} isCompleted={isCompleted} nextDay={nextDay} completedDays={completedDays} />
+  )
 }

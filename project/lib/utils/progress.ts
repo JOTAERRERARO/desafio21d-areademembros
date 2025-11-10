@@ -19,12 +19,36 @@ export interface UserProgress {
   totalProgress: number
 }
 
-export function calculateUserProgress(completedDays: number[]): UserProgress {
+export function calculateUserProgress(completedDays: number[], unlockedWeeks: number[] = [1]): UserProgress {
   // Define 3 semanas fixas
   const weeks: WeekProgress[] = [
-    { weekNumber: 1, isLocked: false, isActive: false, isCompleted: false, completedDays: 0, totalDays: 7, progress: 0 },
-    { weekNumber: 2, isLocked: true, isActive: false, isCompleted: false, completedDays: 0, totalDays: 7, progress: 0 },
-    { weekNumber: 3, isLocked: true, isActive: false, isCompleted: false, completedDays: 0, totalDays: 7, progress: 0 },
+    {
+      weekNumber: 1,
+      isLocked: false,
+      isActive: false,
+      isCompleted: false,
+      completedDays: 0,
+      totalDays: 7,
+      progress: 0,
+    },
+    {
+      weekNumber: 2,
+      isLocked: !unlockedWeeks.includes(2),
+      isActive: false,
+      isCompleted: false,
+      completedDays: 0,
+      totalDays: 7,
+      progress: 0,
+    },
+    {
+      weekNumber: 3,
+      isLocked: !unlockedWeeks.includes(3),
+      isActive: false,
+      isCompleted: false,
+      completedDays: 0,
+      totalDays: 7,
+      progress: 0,
+    },
   ]
 
   // Conta quantos dias completos por semana
@@ -37,10 +61,6 @@ export function calculateUserProgress(completedDays: number[]): UserProgress {
     week.progress = (week.completedDays / week.totalDays) * 100
     week.isCompleted = week.completedDays === week.totalDays
   })
-
-  // 🔐 Lógica de bloqueio progressiva entre semanas
-  weeks[1].isLocked = !weeks[0].isCompleted
-  weeks[2].isLocked = !weeks[1].isCompleted
 
   // Define qual semana está ativa
   let activeWeek = 1

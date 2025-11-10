@@ -1,19 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import {
-  CheckCircle2,
-  Circle,
-  Lock,
-  ChevronDown,
-  ChevronUp,
-  Play,
-  Flame
-} from "lucide-react"
+import { CheckCircle2, Circle, Lock, ChevronDown, ChevronUp, Play } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { completeDayAction } from "@/lib/actions/progress"
+import { useLocalProgress } from "@/lib/hooks/use-local-progress"
 import type { WorkoutDay } from "@/lib/types/database"
 import Link from "next/link"
+import { WeekCompletionModal } from "@/components/week-completion-modal"
 
 interface WeekModuleProps {
   weekNumber: number
@@ -21,7 +14,6 @@ interface WeekModuleProps {
   description: string
   totalDays: number
   days: WorkoutDay[]
-  userId: string
   completedDays: number[]
   isLocked: boolean
   isActive: boolean
@@ -33,7 +25,6 @@ export function WeekModule({
   description,
   totalDays,
   days,
-  userId,
   completedDays,
   isLocked,
   isActive,
@@ -41,13 +32,28 @@ export function WeekModule({
   const [expandedDay, setExpandedDay] = useState<number | null>(null)
   const [dayNotes, setDayNotes] = useState<Record<number, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { completeDay } = useLocalProgress()
   const router = useRouter()
+  const [showCompletionModal, setShowCompletionModal] = useState(false)
+  const [wasJustCompleted, setWasJustCompleted] = useState(false)
 
   const markDayComplete = async (day: number) => {
-    if (!userId || isSubmitting) return
+    if (isSubmitting) return
     setIsSubmitting(true)
-    const result = await completeDayAction(day)
-    if (result?.error) alert("Erro ao marcar dia como completo: " + result.error)
+
+    completeDay(day)
+
+    // Check if week is now complete
+    const startOfWeek = (weekNumber - 1) * 7 + 1
+    const endOfWeek = weekNumber * 7
+    const newCompletedDays = [...completedDays, day]
+    const completedInThisWeek = newCompletedDays.filter((d) => d >= startOfWeek && d <= endOfWeek).length
+
+    if (completedInThisWeek === 7 && !wasJustCompleted) {
+      setWasJustCompleted(true)
+      setTimeout(() => setShowCompletionModal(true), 500)
+    }
+
     setIsSubmitting(false)
     router.refresh()
   }
@@ -56,7 +62,6 @@ export function WeekModule({
     setDayNotes((prev) => ({ ...prev, [day]: note }))
   }
 
-  // 🔒 Semana bloqueada
   if (isLocked) {
     return (
       <div className="space-y-6">
@@ -72,7 +77,6 @@ export function WeekModule({
                 </h1>
                 <p className="text-gray-500">{description}</p>
               </div>
-              {/* 🔒 Cadeado à direita */}
               <Lock className="text-gray-500" size={32} />
             </div>
           </div>
@@ -86,23 +90,22 @@ export function WeekModule({
     )
   }
 
-  // 🔢 Cálculo da semana
   const startOfWeek = (weekNumber - 1) * 7 + 1
   const endOfWeek = weekNumber * 7
   const completedInThisWeek = completedDays.filter((d) => d >= startOfWeek && d <= endOfWeek).length
   const weekProgressPct = Math.round((completedInThisWeek / 7) * 100)
   const isWeekCompleted = completedInThisWeek === 7
 
-  // 🔥 Ícone da direita da semana (🔥, ✅, 🔒)
-  const renderWeekIcon = () => {
-    if (isWeekCompleted) return <CheckCircle2 className="text-accent-green animate-pulse" size={32} />
-    if (isActive) return <Flame className="text-accent-yellow animate-pulse" size={32} />
-    return <Lock className="text-gray-600" size={32} />
-  }
-
   return (
     <div className="space-y-6">
-      {/* Header da Semana */}
+      {showCompletionModal && (
+        <WeekCompletionModal
+          weekNumber={weekNumber}
+          nextWeekUnlocked={weekNumber < 3}
+          onClose={() => setShowCompletionModal(false)}
+        />
+      )}
+
       <div
         className={`bg-gradient-to-br from-dark-card via-dark-card to-primary/10 rounded-2xl p-8 border border-dark-border ${
           isActive ? "animate-pulse shadow-xl shadow-primary/20" : ""
@@ -125,11 +128,17 @@ export function WeekModule({
             </div>
           </div>
 
-          {/* 🔥/✅/🔒 Ícone dinâmico à direita */}
-          <div className="flex items-center">{renderWeekIcon()}</div>
+          <div className="flex items-center">
+            {isWeekCompleted ? (
+              <CheckCircle2 className="text-accent-green animate-pulse" size={32} />
+            ) : isActive ? (
+              <div className="text-accent-yellow animate-pulse text-2xl">🔥</div>
+            ) : (
+              <Lock className="text-gray-600" size={32} />
+            )}
+          </div>
         </div>
 
-        {/* Barra de progresso */}
         <div className="space-y-2 mt-4">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-400">{totalDays} treinos</span>
@@ -144,7 +153,6 @@ export function WeekModule({
         </div>
       </div>
 
-      {/* Lista de dias */}
       <div className="space-y-4">
         {days.map((day) => {
           const isExpanded = expandedDay === day.day
@@ -160,8 +168,8 @@ export function WeekModule({
                 isCompleted
                   ? "border-accent-green/50"
                   : dayLocked
-                  ? "border-dark-border opacity-60"
-                  : "border-dark-border"
+                    ? "border-dark-border opacity-60"
+                    : "border-dark-border"
               }`}
             >
               <button
