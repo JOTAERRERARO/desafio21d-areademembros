@@ -44,9 +44,7 @@ export function Header({ onMenuToggle, completedDays }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent-yellow flex items-center justify-center font-black text-sm shadow-lg">
-          21D
-        </div>
+        <img src="/images/design-mode/MYStVHA.png" alt="21D Logo" className="h-24 w-auto object-contain" />
       </div>
     </header>
   )

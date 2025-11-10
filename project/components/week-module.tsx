@@ -100,7 +100,7 @@ export function WeekModule({
     <div className="space-y-6">
       {showCompletionModal && (
         <WeekCompletionModal
-          weekNumber={weekNumber}
+          dayNumber={endOfWeek}
           nextWeekUnlocked={weekNumber < 3}
           onClose={() => setShowCompletionModal(false)}
         />

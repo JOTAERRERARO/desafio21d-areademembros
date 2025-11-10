@@ -53,10 +53,13 @@ export default function VideoPage({ params }: { params: Promise<{ id: string }> 
 
   const weekNumber = Math.ceil(dayNumber / 7)
   const isWeekUnlocked = unlockedWeeks.includes(weekNumber)
-  const isDayCompleted = completedDays.includes(dayNumber - 1)
-  const isFirstDayOfWeek = dayNumber % 7 === 1
+  const isDayCompleted = completedDays.includes(dayNumber)
 
-  const isLocked = !isWeekUnlocked || (dayNumber > 1 && !isFirstDayOfWeek && !completedDays.includes(dayNumber - 1))
+  const isFirstDayOfWeek = dayNumber % 7 === 1
+  const isPreviousDayCompleted = dayNumber === 1 || completedDays.includes(dayNumber - 1)
+  const isDayAccessible = isFirstDayOfWeek || isPreviousDayCompleted
+
+  const isLocked = !isWeekUnlocked || !isDayAccessible
 
   if (isLocked) {
     router.push("/dashboard")

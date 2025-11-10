@@ -52,7 +52,6 @@ export function useLocalProgress() {
       const updated = Array.from(new Set([...prev.completedDays, day])).sort((a, b) => a - b)
       const newUnlockedWeeks = [...prev.unlockedWeeks]
 
-      // Check if completing last day of a week to unlock next week
       if (day === 7 && !newUnlockedWeeks.includes(2)) {
         newUnlockedWeeks.push(2)
       } else if (day === 14 && !newUnlockedWeeks.includes(3)) {

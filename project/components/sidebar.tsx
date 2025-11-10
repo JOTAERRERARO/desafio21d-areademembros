@@ -78,8 +78,6 @@ export function Sidebar({ isOpen, onClose, currentPage, onPageChange, progress }
       { id: "nutrition", label: "Nutrição Inteligente", icon: Utensils, section: "modules" },
       { id: "bonuses", label: "Bônus Exclusivos", icon: Gift, section: "modules" },
       { id: "progress", label: "Meu Progresso", icon: TrendingUp, section: "tools" },
-      { id: "journal", label: "Diário 21D", icon: BookOpen, section: "tools" },
-      { id: "community", label: "Comunidade", icon: MessageSquare, section: "tools" },
       { id: "support", label: "Suporte", icon: HelpCircle, section: "tools" },
     ]
     setMenu(baseMenu)

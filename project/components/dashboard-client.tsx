@@ -9,8 +9,6 @@ import { Mindset } from "@/components/mindset"
 import { Nutrition } from "@/components/nutrition"
 import { Bonuses } from "@/components/bonuses"
 import { ProgressPage } from "@/components/progress-page"
-import { JournalPage } from "@/components/journal-page"
-import { CommunityPage } from "@/components/community-page"
 import { SupportPage } from "@/components/support-page"
 import { week1Days, week2Days, week3Days } from "@/lib/data/workout-data"
 import { useLocalProgress } from "@/lib/hooks/use-local-progress"
@@ -85,10 +83,6 @@ export function DashboardClient() {
         return <Bonuses />
       case "progress":
         return <ProgressPage completedDays={completedDays} />
-      case "journal":
-        return <JournalPage />
-      case "community":
-        return <CommunityPage />
       case "support":
         return <SupportPage />
       default:
